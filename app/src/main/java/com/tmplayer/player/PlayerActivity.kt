@@ -9311,6 +9311,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
 
         fun cloudIntent(context: Context, file: com.tmplayer.torbox.TorBoxFile): Intent =
             Intent(context, PlayerActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 .putExtra("torbox_torrent_id", file.torrentId)
                 .putExtra("torbox_file_id", file.fileId)
                 .putExtra("torbox_source", file.source.name)
