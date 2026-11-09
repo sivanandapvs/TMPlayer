@@ -11,8 +11,8 @@ Connecting sends the API key to TorBox over HTTPS to validate the account. The k
 with AES-256/GCM using Android Keystore and saved in the app's private no-backup directory.
 It is not included in the app's settings export. There is no plaintext-storage fallback.
 
-Account information and cloud-library file names are requested directly from TorBox. Library
-lists stay in memory in this build. Refresh and paging are requested by the viewer; there is no
+Account information and cloud-library file names are requested directly from TorBox. The first library page for each provider is cached locally with Keystore-backed encryption,
+bounded to 8 MB per provider. Other loaded pages stay in memory in this build. Refresh and paging are requested by the viewer; there is no
 automatic cloud-library polling. Provider availability depends on the TorBox account and plan.
 
 Playing requests a temporary download URL from TorBox, then sends playback requests to that URL's
@@ -22,8 +22,8 @@ URLs in Android intents or resume preferences. TorBox and its delivery hosts rec
 information needed to serve those requests and apply their own policies.
 
 Cloud resume preferences contain a hashed account/provider/file identifier and the playback
-position. They are bounded to 500 entries. Disconnect removes the encrypted API key and clears
-the displayed library. It does not delete cloud files on TorBox. Resume positions remain local;
+position. They are bounded to 500 entries. Disconnect removes the encrypted API key, attempts to remove encrypted library snapshots,
+and clears the displayed library. It does not delete cloud files on TorBox. Resume positions remain local;
 clearing Android app data removes them.
 
 ## Existing features

@@ -73,8 +73,13 @@
   assertions and Android storage fixtures. Do not call regression validation complete.
 - User chose local tests only. Live TorBox authentication, actual streaming, audio/subtitle
   decoding, real-device focus and low-end TV CPU checks remain unverified.
-- Cloud downloads, persistent cloud-library caching, in-player cloud quality switching, cloud
+- Cloud downloads, in-player cloud quality switching, cloud
   casting and automatic cloud episode advance are not implemented. Choose an available file
   version before playback; use the TorBox dashboard for downloads until a safe queue is added.
 - New TorBox text currently falls back to English outside the English catalog. Translate and
   review the 20 other catalogs before release.
+
+- Added a bounded encrypted first-page cache for each cloud provider, matched to a hashed account identity.
+  Cached content is labeled until refreshed. Cache parsing has garbage-input, account-isolation, round-trip and 20,000-file scale tests; final execution is pending.
+
+- Checkpoint 90f983df compiled an APK. Its final local run had 2,116 core tests (four Windows symlink-privilege failures), 212 UI tests (one identity-comparison assertion), and 13 targeted Android tests (one TV window-focus failure). The assertion and focus setup are corrected for the next run.

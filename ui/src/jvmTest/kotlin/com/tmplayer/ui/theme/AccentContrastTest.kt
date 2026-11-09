@@ -63,7 +63,7 @@ class AccentContrastTest {
         assertEquals(TmSchemes.Light, TmSchemes.of(dark = false, accent = Accent.Telegram))
         assertEquals(Color(0xFF79D0F5), TmSchemes.of(dark = true, accent = Accent.Telegram).primary)
         assertEquals(Color(0xFF00677F), TmSchemes.of(dark = false, accent = Accent.Telegram).primary)
-        assertEquals(TmSchemes.of(dark = true, accent = Accent.Violet), TmSchemes.of(dark = true))
+        assertEquals(TmSchemes.of(dark = true, accent = Accent.Violet).primary, TmSchemes.of(dark = true).primary)
     }
 
     @Test

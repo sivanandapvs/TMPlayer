@@ -2972,6 +2972,7 @@
   },
   "torbox": {
     "api_key": "TorBox API key",
+    "cached": "Showing the saved first page. Refresh checks for cloud changes.",
     "connect": "Connect account",
     "connected": "TorBox account connected",
     "disconnect": "Disconnect TorBox",
@@ -2979,6 +2980,7 @@
     "disconnected": "Connect your TorBox account",
     "empty": "No matching videos in the loaded library. Refresh or load the next page.",
     "error_auth": "TorBox rejected this key or your plan does not allow API access. Check your account and try again.",
+    "error_cache": "The library was updated, but its local cache could not be saved. Free some storage and refresh to try again.",
     "error_key": "Enter a valid TorBox API key without spaces or line breaks.",
     "error_limit": "The library limit was reached. Narrow your library on TorBox and refresh.",
     "error_network": "Cannot reach TorBox. Check your connection and try again.",

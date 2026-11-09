@@ -169,3 +169,5 @@ Snapshot of implementation files relative to origin/main. The debug APK is an ig
 - `ui/src/shared/kotlin/com/tmplayer/ui/components/StorageDonut.kt`
 - `ui/src/shared/kotlin/com/tmplayer/ui/onboarding/Onboarding.kt`
 - `ui/src/shared/kotlin/com/tmplayer/ui/theme/Palette.kt`
+- `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxCacheTest.kt`
+- `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxScaleTest.kt`

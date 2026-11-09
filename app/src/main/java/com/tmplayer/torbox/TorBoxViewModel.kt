@@ -22,6 +22,7 @@ data class TorBoxState(
     val error: String? = null,
     val refreshed: Boolean = false,
     val source: TorBoxSource = TorBoxSource.Torrents,
+    val fromCache: Boolean = false,
 )
 
 class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
@@ -37,7 +38,10 @@ class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
         run {
             key = withContext(Dispatchers.IO) { credentials.read() }
             mutable.value = mutable.value.copy(connected = key != null)
-            key?.let { load(it, false) }
+            key?.let { token ->
+                showCached(token, mutable.value.source)
+                load(token, false)
+            }
         }
     }
 
@@ -60,8 +64,8 @@ class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
 
     fun selectSource(source: TorBoxSource) = run {
         if (source == mutable.value.source) return@run
-        mutable.value = mutable.value.copy(source = source, files = emptyList(), nextOffset = null, refreshed = false)
-        key?.let { load(it, false) }
+        mutable.value = mutable.value.copy(source = source, files = emptyList(), nextOffset = null, refreshed = false, fromCache = false)
+        key?.let { token -> showCached(token, source); load(token, false) }
     }
 
     fun disconnect() = run {
@@ -83,12 +87,19 @@ class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
             ((if (more) before.files else emptyList()) + page.files)
                 .distinctBy { it.key }.sortedByDescending { it.added }.take(MAX_FILES)
         }
+        val cached = more || withContext(Dispatchers.IO) { credentials.writeLibrary(token, before.source, page) }
         mutable.value = before.copy(connected = true, busy = true, account = account, files = files,
-            nextOffset = page.nextOffset.takeIf { files.size < MAX_FILES }, refreshed = true, error = null)
+            nextOffset = page.nextOffset.takeIf { files.size < MAX_FILES }, refreshed = true,
+            fromCache = false, error = if (cached) null else "cache")
+    }
+
+    private suspend fun showCached(token: String, source: TorBoxSource) {
+        val page = withContext(Dispatchers.IO) { credentials.readLibrary(token, source) } ?: return
+        mutable.value = mutable.value.copy(files = page.files, nextOffset = page.nextOffset, refreshed = true, fromCache = true)
     }
 
     private fun run(block: suspend () -> Unit) {
-        if (work?.isActive == true) return
+        if (work?.isCompleted == false) return
         work = scope.launch {
             mutable.value = mutable.value.copy(busy = true, error = null)
             try { block() }

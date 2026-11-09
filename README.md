@@ -11,7 +11,8 @@ not a published release. The application ID remains `com.tmplayer`.
 - Existing phone and Android TV navigation, Telegram library and player remain available.
 - Open **TorBox cloud library** before Telegram sign-in, or from Settings.
 - Enter your own TorBox API key. Veylora validates it before saving it with Android Keystore.
-- Refresh synchronizes the loaded cloud library. Load subsequent pages explicitly.
+- A bounded encrypted first-page cache appears while refresh checks the cloud library.
+  Load subsequent pages explicitly; no background polling runs.
 - Browse torrent, Usenet or web-download files, videos or episodes; search the files already loaded on the device.
 - Choose a file version to play. The existing player supplies audio and embedded subtitle
   selection, seeking, resume and retry with a newly requested cloud link.

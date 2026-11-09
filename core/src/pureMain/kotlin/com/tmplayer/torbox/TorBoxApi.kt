@@ -1,6 +1,7 @@
 package com.tmplayer.torbox
 
 import com.tmplayer.json.JSONObject
+import com.tmplayer.json.JSONArray
 import com.tmplayer.online.HttpRequest
 import com.tmplayer.online.HttpTransport
 import com.tmplayer.platform.IOException
@@ -124,6 +125,31 @@ class TorBoxApi(private val http: HttpTransport) {
             }
             val next = (offset + torrents.length()).takeIf { torrents.length() == PAGE_SIZE && it < MAX_TORRENTS }
             return TorBoxPage(files.distinctBy { it.key }.sortedByDescending { it.added }, next)
+        }
+
+        /** A bounded first-page snapshot, using the same file parser as the network. */
+        fun cachePage(page: TorBoxPage, owner: String, source: TorBoxSource): String {
+            val groups = page.files.filter { it.source == source }.groupBy { it.torrentId }
+            val torrents = JSONArray()
+            for ((id, files) in groups.entries.take(PAGE_SIZE)) {
+                val entries = JSONArray()
+                files.forEach { file ->
+                    entries.put(JSONObject().put("id", file.fileId).put("name", file.name).put("size", file.size))
+                }
+                torrents.put(JSONObject().put("id", id).put("download_finished", files.all { it.ready })
+                    .put("created_at", files.firstOrNull()?.added.orEmpty()).put("files", entries))
+            }
+            return JSONObject().put("version", 1).put("owner", owner).put("source", source.name)
+                .put("next_offset", page.nextOffset ?: -1).put("data", torrents).toString()
+        }
+
+        fun cachedPage(text: String, owner: String, source: TorBoxSource): TorBoxPage? {
+            val root = parse(text) ?: return null
+            if (root.optInt("version") != 1 || root.optString("owner") != owner || root.optString("source") != source.name) return null
+            val page = parsePage(root, 0, source) ?: return null
+            val next = root.optInt("next_offset", -1)
+            if (next != -1 && (next !in PAGE_SIZE until MAX_TORRENTS || next % PAGE_SIZE != 0)) return null
+            return page.copy(nextOffset = next.takeIf { it >= 0 })
         }
     }
 }

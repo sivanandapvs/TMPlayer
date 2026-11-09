@@ -59,6 +59,7 @@ class GarbageInputTest {
                     com.tmplayer.torbox.TorBoxApi.parsePage(root, 0)
                 }
                 com.tmplayer.torbox.TorBoxApi.safeStreamUrl(text)
+                com.tmplayer.torbox.TorBoxApi.cachedPage(text, "test-owner", com.tmplayer.torbox.TorBoxSource.Torrents)
             }
         }
         assertNoFailures()

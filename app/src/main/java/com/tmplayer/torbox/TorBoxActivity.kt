@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -66,6 +67,8 @@ internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel
     val context = LocalContext.current
     val tv = FormFactor.isTv(context)
     val first = remember { FocusRequester() }
+    val windowFocused = LocalWindowInfo.current.isWindowFocused
+    var focusedInitially by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf("") }
     var search by rememberSaveable { mutableStateOf("") }
     var kind by rememberSaveable { mutableIntStateOf(0) }
@@ -85,7 +88,12 @@ internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel
             }
         }
     }
-    LaunchedEffect(Unit) { if (tv) first.requestFocus() }
+    LaunchedEffect(tv, windowFocused) {
+        if (tv && windowFocused && !focusedInitially) {
+            withFrameNanos { }
+            focusedInitially = first.requestFocus()
+        }
+    }
 
     Surface(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -103,6 +111,7 @@ internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel
                     OutlinedButton(onClick = onBack, modifier = Modifier.focusRequester(first)) { Text(s.commonBack) }
                 }
                 Text(text("title"), style = MaterialTheme.typography.titleLarge)
+                if (state.fromCache) Text(text("cached"), style = MaterialTheme.typography.bodyMedium)
             }
             if (state.busy) item {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
