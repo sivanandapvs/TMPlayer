@@ -33,7 +33,7 @@ checkpoint, not a completed integration or release candidate.
 | Larger libraries and metadata | At most 20,000 loaded files; search covers loaded pages. Only the first page per provider is cached. |
 | Translations | New TorBox text uses English fallback. Translate and review the other 20 catalogs before release. |
 | Regression failures | Earlier broad runs are not green. See the build report for exact failures; compare against a clean base before assigning cause. |
-| Telegram sign-in in this APK | No Telegram app credentials were configured. Add your own credentials locally and rebuild to test Telegram sign-in. |
+| Telegram sign-in in this APK | No Telegram app credentials were configured. This is expected for a credential-free fork build. Add developer-owned credentials locally only to enable Telegram sign-in; TorBox does not require them. The feature branch accepts credentials from local.properties or CI environment variables. |
 | Release validation | Release/R8, extended FFmpeg source build, installation/upgrade and physical-phone checks remain pending. |
 
 ## Explicitly deferred platforms
