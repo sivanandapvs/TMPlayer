@@ -3,6 +3,8 @@
 Veylora is a derivative of TMPlayer, licensed under GPL-3.0-or-later. TMPlayer's authors and
 contributors retain their copyrights. See LICENSE, THIRD_PARTY_NOTICES.md and Git history.
 The upstream source is https://github.com/dracu-lah/TMPlayer.
+Original notice: GNU GPL-3.0-or-later, © 2026 dracu-lah, with the additional permission for
+OpenSSL in LICENSE-OPENSSL-EXCEPTION.md. The original SVG Repo artwork remains attributed.
 
 TorBox-Cinema main-2 at 746fa4b was inspected to identify cloud-library behavior and build
 differences. No TorBox-Cinema application source, bundled native library or artwork is copied.

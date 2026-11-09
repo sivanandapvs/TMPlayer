@@ -2,11 +2,16 @@ package com.tmplayer.online
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** [HttpTransport] over the JDK's own connection, which both Android and the desktop have. */
 object UrlConnectionTransport : HttpTransport {
@@ -23,6 +28,11 @@ object UrlConnectionTransport : HttpTransport {
             throw e
         } catch (e: Exception) {
             throw IOException("Not a web address: ${e.message}", e)
+        }
+        val finished = AtomicBoolean(false)
+        val cancellation = launch(start = CoroutineStart.UNDISPATCHED) {
+            try { awaitCancellation() }
+            finally { if (!finished.get()) runCatching { connection.disconnect() } }
         }
         try {
             connection.requestMethod = request.method
@@ -47,7 +57,11 @@ object UrlConnectionTransport : HttpTransport {
             // handshakes: disconnecting after every answer cost one to three hundred milliseconds a
             // picture, which is most of a Home row's wait on a phone's connection.
             connection.disconnect()
+            coroutineContext.ensureActive()
             throw e
+        } finally {
+            finished.set(true)
+            cancellation.cancel()
         }
     }
 

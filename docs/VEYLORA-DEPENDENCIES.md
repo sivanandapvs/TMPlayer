@@ -26,3 +26,7 @@ download of the same distribution succeeded and matched the checked-in SHA-256.
 Debug builds use the existing Maven NextLib fallback. They do not include the additional five
 video decoders from the project's separately built FFmpeg extension. Release compilation and
 native decoder source builds were not requested or published.
+
+The existing HTTP transport now closes in-flight requests on coroutine cancellation while
+retaining completed connections for reuse. TorBox requests have a 45-second deadline.
+No separate TorBox network client or dependency was introduced.

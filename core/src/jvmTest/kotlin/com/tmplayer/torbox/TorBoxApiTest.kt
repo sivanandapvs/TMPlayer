@@ -82,4 +82,21 @@ class TorBoxApiTest {
             assertEquals("${source.path}:7:2", page.files.single().key)
         }
     }
+
+    @Test fun aRequestDeadlineBecomesARecoverableNetworkFailure() = runTest {
+        var calls = 0
+        val api = TorBoxApi(HttpTransport {
+            calls++
+            kotlinx.coroutines.delay(120_000)
+            response("{}")
+        })
+        val failure = assertFailsWith<TorBoxFailure> { api.account(key) }
+        assertEquals("network", failure.reason)
+        assertEquals(1, calls)
+    }
+
+    @Test fun absurdJsonNestingIsRejectedWithoutRejectingBracesInFileNames() {
+        assertNull(TorBoxApi.parse("{\"nested\":".repeat(10_000) + "0" + "}".repeat(10_000)))
+        assertNotNull(TorBoxApi.parse("""{"name":"${"{".repeat(1000)}","data":[]}"""))
+    }
 }

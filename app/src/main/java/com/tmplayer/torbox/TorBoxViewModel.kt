@@ -25,9 +25,12 @@ data class TorBoxState(
     val fromCache: Boolean = false,
 )
 
-class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
-    private val credentials = TorBoxCredentials(app)
-    private val api = TorBoxApi(UrlConnectionTransport)
+class TorBoxViewModel internal constructor(
+    app: Application,
+    private val api: TorBoxApi,
+    private val credentials: TorBoxVault,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(app, TorBoxApi(UrlConnectionTransport), TorBoxCredentials(app))
     private val scope = JobFailures.viewModelScope("TorBox")
     private val mutable = MutableStateFlow(TorBoxState())
     val state = mutable.asStateFlow()
@@ -57,7 +60,7 @@ class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
             mutable.value = TorBoxState(connected = true, busy = true, account = account)
             done()
         }
-        load(trimmed, false)
+        load(trimmed, false, refreshAccount = false)
     }
 
     fun refresh(more: Boolean = false) = run { key?.let { load(it, more) } }
@@ -76,11 +79,11 @@ class TorBoxViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private suspend fun load(token: String, more: Boolean) {
+    private suspend fun load(token: String, more: Boolean, refreshAccount: Boolean = !more) {
         val before = mutable.value
         val offset = if (more) before.nextOffset ?: return else 0
         val account = withContext(Dispatchers.Default) {
-            if (more) before.account ?: api.account(token) else api.account(token)
+            if (refreshAccount) api.account(token) else before.account ?: api.account(token)
         }
         val page = withContext(Dispatchers.Default) { api.library(token, offset, refresh = !more, source = before.source) }
         val files = withContext(Dispatchers.Default) {

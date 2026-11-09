@@ -11,12 +11,20 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+interface TorBoxVault {
+    fun read(): String?
+    fun write(key: String)
+    fun clear()
+    fun readLibrary(key: String, source: TorBoxSource): TorBoxPage?
+    fun writeLibrary(key: String, source: TorBoxSource, page: TorBoxPage): Boolean
+}
+
 /** API 23 Keystore. Ciphertext lives outside Android backup; failures never fall back to plaintext. */
-class TorBoxCredentials(context: Context) {
+class TorBoxCredentials(context: Context) : TorBoxVault {
     private val directory = context.noBackupFilesDir
     private val file = AtomicFile(File(directory, "torbox-credential"))
 
-    fun read(): String? = synchronized(LOCK) {
+    override fun read(): String? = synchronized(LOCK) {
         if (!file.baseFile.exists()) return@synchronized null
         val bytes = file.openRead().use { it.readNBytesCompat(2048) }
         if (bytes.size !in 29..2048) throw TorBoxFailure("storage")
@@ -26,7 +34,7 @@ class TorBoxCredentials(context: Context) {
             .takeIf(TorBoxApi::validKey) ?: throw TorBoxFailure("storage")
     }
 
-    fun write(key: String): Unit = synchronized(LOCK) {
+    override fun write(key: String): Unit = synchronized(LOCK) {
         if (!TorBoxApi.validKey(key)) throw TorBoxFailure("key")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, masterKey())
@@ -36,7 +44,7 @@ class TorBoxCredentials(context: Context) {
         catch (failure: Exception) { file.failWrite(output); throw TorBoxFailure("storage") }
     }
 
-    fun clear(): Unit = synchronized(LOCK) {
+    override fun clear(): Unit = synchronized(LOCK) {
         TorBoxSource.entries.forEach { source -> runCatching { libraryFile(source).delete() } }
         file.delete()
         if (file.baseFile.exists()) throw TorBoxFailure("storage")
@@ -48,7 +56,7 @@ class TorBoxCredentials(context: Context) {
         Unit
     }
 
-    fun readLibrary(key: String, source: TorBoxSource): TorBoxPage? = synchronized(LOCK) {
+    override fun readLibrary(key: String, source: TorBoxSource): TorBoxPage? = synchronized(LOCK) {
         val snapshot = libraryFile(source)
         if (!snapshot.baseFile.exists()) return@synchronized null
         try {
@@ -61,7 +69,7 @@ class TorBoxCredentials(context: Context) {
         } catch (_: Exception) { null }
     }
 
-    fun writeLibrary(key: String, source: TorBoxSource, page: TorBoxPage): Boolean = synchronized(LOCK) {
+    override fun writeLibrary(key: String, source: TorBoxSource, page: TorBoxPage): Boolean = synchronized(LOCK) {
         try {
             val text = TorBoxApi.cachePage(page, owner(key), source).toByteArray(Charsets.UTF_8)
             if (text.size > MAX_CACHE_BYTES) return@synchronized false

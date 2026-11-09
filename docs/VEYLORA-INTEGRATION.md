@@ -86,3 +86,6 @@
 
 - Cache checkpoint 62d19de7 passed the new cache and 20,000-file scale tests (one API call, 1,200,917 response bytes, 78 ms parsing on this host). UI theme tests now pass. TV entry-focus fixture still needed correction.
 - Review found the existing player hid all retry actions for non-Telegram IDs. Cloud failures now explicitly offer Try again, Back and Send logs; a real PlayerActivity missing-credential test was added.
+
+- Added cancellation to the existing HTTP transport and a 45-second TorBox request deadline. Local HTTP tests proved cancellation before response headers and connection reuse after successful responses. Added a nesting bound before JSON document construction.
+- Added a storage boundary for ViewModel tests, keeping Android Keystore as the production implementation. Connection reuses the account validation result instead of requesting it twice. Session tests cover rejected key replacement, retained library after refresh failure, local disconnect and cache display before network completion.

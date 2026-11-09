@@ -6,6 +6,8 @@ import com.tmplayer.online.HttpRequest
 import com.tmplayer.online.HttpTransport
 import com.tmplayer.platform.IOException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 enum class TorBoxSource(val path: String, val idParameter: String) {
     Torrents("torrents", "torrent_id"),
@@ -59,7 +61,11 @@ class TorBoxApi(private val http: HttpTransport) {
     private suspend fun get(key: String, path: String): JSONObject {
         if (!validKey(key)) throw TorBoxFailure("key")
         val response = try {
-            http.send(HttpRequest("GET", BASE + path, mapOf("Authorization" to "Bearer $key", "Accept" to "application/json")))
+            withTimeout(REQUEST_TIMEOUT_MS) {
+                http.send(HttpRequest("GET", BASE + path, mapOf("Authorization" to "Bearer $key", "Accept" to "application/json")))
+            }
+        } catch (_: TimeoutCancellationException) {
+            throw TorBoxFailure("network")
         } catch (cancel: CancellationException) {
             throw cancel
         } catch (_: Exception) {
@@ -83,6 +89,8 @@ class TorBoxApi(private val http: HttpTransport) {
         const val BASE = "https://api.torbox.app/v1/api"
         const val PAGE_SIZE = 100
         const val MAX_TORRENTS = 100_000
+        private const val REQUEST_TIMEOUT_MS = 45_000L
+        private const val MAX_JSON_DEPTH = 32
         private val videoExtensions = setOf("mkv", "mp4", "m4v", "webm", "avi", "mov", "ts", "m2ts", "mpg", "mpeg", "3gp")
 
         fun validKey(key: String): Boolean = key.length in 8..512 && key.all { it.code in 33..126 }
@@ -100,6 +108,21 @@ class TorBoxApi(private val http: HttpTransport) {
 
         fun parse(text: String): JSONObject? {
             if (text.length > 8 * 1024 * 1024) return null
+            // Bound nesting before the shared JSON wrapper constructs its recursive document.
+            var depth = 0
+            var quoted = false
+            var escaped = false
+            for (char in text) {
+                if (quoted) {
+                    if (escaped) escaped = false
+                    else when (char) { '\\' -> escaped = true; '"' -> quoted = false }
+                } else when (char) {
+                    '"' -> quoted = true
+                    '{', '[' -> if (++depth > MAX_JSON_DEPTH) return null
+                    '}', ']' -> if (--depth < 0) return null
+                }
+            }
+            if (depth != 0 || quoted) return null
             return try { JSONObject(text) } catch (_: Exception) { null }
         }
 

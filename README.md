@@ -43,5 +43,10 @@ Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 
 Veylora is a GPL-3.0-or-later derivative of TMPlayer. Original authors retain their copyrights.
 See [LICENSE](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) and the Git history.
+
+[GNU GPL-3.0-or-later](LICENSE) © 2026 dracu-lah, with an [additional permission for OpenSSL](LICENSE-OPENSSL-EXCEPTION.md).
+The original player artwork retained in `art/player.svg` came from [SVG Repo](https://www.svgrepo.com).
+Veylora's production V/play symbol is newly drawn; see `art/veylora/` and the provenance document.
+
 It is an unofficial Telegram client, independent of Telegram and TorBox. Upstream Telegram
 terms and legal context: https://tmplayer.org/legal/.
