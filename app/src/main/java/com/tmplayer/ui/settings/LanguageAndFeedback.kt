@@ -225,11 +225,11 @@ fun FeedbackDialog(onClose: () -> Unit) {
                     Label(s.feedbackOpenGithub)
                 }
                 if (Feedback.EMAIL.isNotBlank()) {
-                TmSecondaryButton(
-                    onClick = { if (sendMail(context, Feedback.mailto(facts))) onClose() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Label(s.feedbackEmail) }
-                Text(s.feedbackEmailDetail(Feedback.EMAIL), style = MaterialTheme.typography.bodySmall, color = Tone.muted)
+                    TmSecondaryButton(
+                        onClick = { if (sendMail(context, Feedback.mailto(facts))) onClose() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Label(s.feedbackEmail) }
+                    Text(s.feedbackEmailDetail(Feedback.EMAIL), style = MaterialTheme.typography.bodySmall, color = Tone.muted)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TmSecondaryButton(onClick = onClose) { Label(s.commonClose) }

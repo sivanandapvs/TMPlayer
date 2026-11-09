@@ -8261,7 +8261,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * others the quiet one, so the sheet always has exactly one button that reads as the answer.
      */
     private fun markPrimaryAction(primary: View) {
-        for (button in listOf(statusReload, statusBack, statusOpenWith, statusLighter, statusDecoder)) {
+        for (button in listOf(statusRetry, statusReload, statusBack, statusOpenWith, statusLighter, statusDecoder)) {
             val chosen = button === primary
             button?.setBackgroundResource(if (chosen) R.drawable.bg_control_pill_primary else R.drawable.bg_control_pill)
             button?.setTextColor(getColorStateList(if (chosen) R.color.player_primary_text else R.color.player_control_icon))
@@ -8309,6 +8309,15 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         statusDecoder?.visibility = if (switch != null) View.VISIBLE else View.GONE
         if (switch != null) {
             statusDecoder?.apply {
+                markPrimaryAction(this)
+                requestFocus()
+            }
+            return
+        }
+        if (cloudTorrentId >= 0) {
+            if (retryable) statusRetry?.apply {
+                text = L.commonTryAgain
+                visibility = View.VISIBLE
                 markPrimaryAction(this)
                 requestFocus()
             }

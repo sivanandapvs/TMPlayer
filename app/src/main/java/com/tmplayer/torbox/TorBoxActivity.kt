@@ -61,6 +61,7 @@ class TorBoxActivity : ComponentActivity() {
 }
 
 @Composable
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel()) {
     val state by model.state.collectAsState()
     val s = LocalStrings.current
@@ -90,8 +91,13 @@ internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel
     }
     LaunchedEffect(tv, windowFocused) {
         if (tv && windowFocused && !focusedInitially) {
-            withFrameNanos { }
-            focusedInitially = first.requestFocus()
+            repeat(3) {
+                withFrameNanos { }
+                if (first.requestFocus()) {
+                    focusedInitially = true
+                    return@LaunchedEffect
+                }
+            }
         }
     }
 

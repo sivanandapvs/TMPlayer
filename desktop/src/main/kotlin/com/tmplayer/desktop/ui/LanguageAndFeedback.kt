@@ -169,8 +169,8 @@ fun FeedbackPopup(onClose: () -> Unit) {
                     Text(s.feedbackBodyDesktop, style = MaterialTheme.typography.bodyMedium)
                     Button(onClick = { OpenExternal.browse(issue); onClose() }) { Text(s.feedbackOpenGithub) }
                     if (Feedback.EMAIL.isNotBlank()) {
-                    OutlinedButton(onClick = { OpenExternal.mail(Feedback.mailto(facts)); onClose() }) { Text(s.feedbackEmail) }
-                    Text(s.feedbackEmailDetail(Feedback.EMAIL), style = MaterialTheme.typography.bodySmall, color = Tone.muted)
+                        OutlinedButton(onClick = { OpenExternal.mail(Feedback.mailto(facts)); onClose() }) { Text(s.feedbackEmail) }
+                        Text(s.feedbackEmailDetail(Feedback.EMAIL), style = MaterialTheme.typography.bodySmall, color = Tone.muted)
                     }
                 }
                 Box(

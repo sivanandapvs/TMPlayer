@@ -83,3 +83,6 @@
   Cached content is labeled until refreshed. Cache parsing has garbage-input, account-isolation, round-trip and 20,000-file scale tests; final execution is pending.
 
 - Checkpoint 90f983df compiled an APK. Its final local run had 2,116 core tests (four Windows symlink-privilege failures), 212 UI tests (one identity-comparison assertion), and 13 targeted Android tests (one TV window-focus failure). The assertion and focus setup are corrected for the next run.
+
+- Cache checkpoint 62d19de7 passed the new cache and 20,000-file scale tests (one API call, 1,200,917 response bytes, 78 ms parsing on this host). UI theme tests now pass. TV entry-focus fixture still needed correction.
+- Review found the existing player hid all retry actions for non-Telegram IDs. Cloud failures now explicitly offer Try again, Back and Send logs; a real PlayerActivity missing-credential test was added.

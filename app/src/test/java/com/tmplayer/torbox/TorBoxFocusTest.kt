@@ -31,7 +31,6 @@ class TorBoxFocusTest {
     @After fun reset() { FormFactor.override(false) }
 
     @Test fun backHasInitialFocusAndDownReachesTheCredentialField() {
-        rule.setContent { TMPlayerTheme { TorBoxScreen(onBack = {}) } }
         val viewRoot = rule.activity.window.decorView.parent
         org.robolectric.util.ReflectionHelpers.callInstanceMethod<Any>(
             viewRoot, "ensureTouchMode",
@@ -42,6 +41,7 @@ class TorBoxFocusTest {
             org.robolectric.util.ReflectionHelpers.ClassParameter.from(Boolean::class.javaPrimitiveType, true),
             org.robolectric.util.ReflectionHelpers.ClassParameter.from(Boolean::class.javaPrimitiveType, false),
         )
+        rule.setContent { TMPlayerTheme { TorBoxScreen(onBack = {}) } }
         rule.waitUntil(5_000) { rule.onAllNodesWithText(L.commonCancel).fetchSemanticsNodes().isEmpty() }
         rule.onNodeWithText(L.commonBack).assertIsFocused()
         rule.onNodeWithText(L.commonBack).performKeyInput { pressKey(Key.DirectionDown) }
