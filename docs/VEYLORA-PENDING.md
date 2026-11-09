@@ -54,7 +54,7 @@ checkpoint, not a completed integration or release candidate.
 - Upstream automatic updates and donation UI are disabled for this development build.
 - Privacy and corresponding-source links must be reviewed and reachable before distribution.
 - Original copyright, GPL/OpenSSL notices and third-party attribution are retained.
-- No merge, push, tag, release or deployment was performed. Keep work on the feature branch.
+- Three follow-up fixes have been pushed to `feature/torbox-integration-rebrand` (credential fallback/validation and CI branch triggers). No merge into main, tag, release or deployment was performed.
 
 ## Local housekeeping
 
