@@ -56,5 +56,13 @@ checkpoint, not a completed integration or release candidate.
 - Original copyright, GPL/OpenSSL notices and third-party attribution are retained.
 - No merge, push, tag, release or deployment was performed. Keep work on the feature branch.
 
+## Local housekeeping
+
+The detached verification worktree was unregistered, but Windows left files in
+`C:/Users/wisewoods399/.cache/veylora-verify-tree` after reporting a filename-too-long error.
+Automatic approval review rejected the subsequent directory removal with "blocked by policy".
+That residual directory remains for later manual cleanup. The APK, reports and source branch
+are preserved independently in the main checkout; no other directory needs removal.
+
 See [build and test report](VEYLORA-REPORT.md), [dependency decisions](VEYLORA-DEPENDENCIES.md),
 [integration map](VEYLORA-INTEGRATION.md) and [changed files](VEYLORA-FILES.md).
