@@ -1,4 +1,4 @@
-# Building TMPlayer
+# Building Veylora
 
 ## What you need
 

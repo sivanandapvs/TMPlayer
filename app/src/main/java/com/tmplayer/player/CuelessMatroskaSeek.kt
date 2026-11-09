@@ -222,7 +222,7 @@ class CuelessMatroskaSeek(
     }
 
     private companion object {
-        const val TAG = "TMPlayer"
+        const val TAG = "Veylora"
 
         /** Enough for the Info of every file seen; ffmpeg and mkvmerge write it in the first few KB. */
         const val HEAD_BYTES = 64 * 1024

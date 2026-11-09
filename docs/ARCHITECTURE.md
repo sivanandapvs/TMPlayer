@@ -1,4 +1,4 @@
-# How TMPlayer works
+# How Veylora works
 
 [TDLib](https://core.telegram.org/tdlib), Telegram's own client library, handles the account, the
 chats and the files, through [tdl-coroutines](https://github.com/g000sha256/tdl-coroutines), which
@@ -10,7 +10,7 @@ it points TDLib at that byte instead of waiting for the intervening gigabytes. T
 arithmetic lives in one pure class with the awkward cases pinned down by unit tests, because that
 is where a streaming player either works or does not.
 
-The player is Media3's ExoPlayer under one overlay of TMPlayer's own (`player_controls.xml`),
+The player is Media3's ExoPlayer under one overlay of Veylora's own (`player_controls.xml`),
 shared by the remote and the thumb. A television sees a single bottom row walked with the
 D-pad; a phone sees the same layout plus a top bar, a centre transport and gestures. The rest of
 the same APK draws a Material 3 layout on a phone, so there is one library, one data layer and two
@@ -82,7 +82,7 @@ holds the arithmetic side of it.
 ## Casting
 
 Two protocols, one picker. Google Cast and DLNA (UPnP AVTransport) both push one video to a TV;
-TMPlayer is the control point and serves only the chosen video and its subtitle, never a library.
+Veylora is the control point and serves only the chosen video and its subtitle, never a library.
 
 - **Core `cast/`** is shared by every build: `CastServer` (token path, Range, an `allowed` address
   filter), `CastSource`, `CastFormats` (`ReceiverCaps` and the `CastPlan` routes), `MkvRemuxer`,

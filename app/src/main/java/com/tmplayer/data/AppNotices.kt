@@ -189,7 +189,7 @@ object AppNotices {
     }
 
     /**
-     * "TMPlayer updated to 1.29.0, tap to open it" (HX5): after an update Android installed in a
+     * "Veylora updated to 1.29.0, tap to open it" (HX5): after an update Android installed in a
      * session, which closed the app and has no Open button of its own. Posted on a TV too, where
      * the launcher may show it; quiet, on the updates channel.
      */

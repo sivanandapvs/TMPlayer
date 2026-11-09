@@ -17,7 +17,7 @@ import java.io.File
  * An update installed in a session on Android 12 and later closes the app with no "Open" button
  * to bring it back. Android 10 and later do not let an app start an activity from the background,
  * this broadcast included, and an exact alarm would need a permission the app has no other use
- * for, so the way back is a notification, "TMPlayer updated to 1.29.0", whose tap opens it. After
+ * for, so the way back is a notification, "Veylora updated to 1.29.0", whose tap opens it. After
  * an install the viewer started, the activity is also asked for directly: where Android allows it
  * (a vendor's build that lets it through) the app simply comes back, and the shell takes the
  * notification down again. On Android 6 to 11 the system installer's own screen has Open, so

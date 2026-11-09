@@ -77,7 +77,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * "Support TMPlayer": one QR code for the support page, which lists both donate links, the star
+ * "Support Veylora": one QR code for the support page, which lists both donate links, the star
  * and the share, with its address under it. [from] tags the visit (`card1`, `settings`, `about`).
  *
  * A TV has no browser, so the code is the point there and Close holds the remote. A phone gets an

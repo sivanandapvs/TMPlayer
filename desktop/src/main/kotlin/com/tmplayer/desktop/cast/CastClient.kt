@@ -136,7 +136,7 @@ class CastClient(val device: CastDevice) {
         output = s.outputStream
         val input = s.inputStream
         scope.launch { readLoop(input) }
-        send(CastNamespaces.PLATFORM, CastNamespaces.CONNECTION, JSONObject().put("type", "CONNECT").put("userAgent", "TMPlayer"))
+        send(CastNamespaces.PLATFORM, CastNamespaces.CONNECTION, JSONObject().put("type", "CONNECT").put("userAgent", "Veylora"))
         scope.launch { heartbeat() }
         launchReceiver()
     }
@@ -157,7 +157,7 @@ class CastClient(val device: CastDevice) {
             withTimeoutOrNull(LAUNCH_TIMEOUT_MS) { while (transportId == null) delay(100) }
         }
         val transport = transportId ?: throw IOException("The receiver did not start")
-        send(transport, CastNamespaces.CONNECTION, JSONObject().put("type", "CONNECT").put("userAgent", "TMPlayer"))
+        send(transport, CastNamespaces.CONNECTION, JSONObject().put("type", "CONNECT").put("userAgent", "Veylora"))
         runCatching { request(transport, CastNamespaces.MEDIA, JSONObject().put("type", "GET_STATUS")) }
     }
 

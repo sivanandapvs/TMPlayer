@@ -162,11 +162,12 @@ android {
         // Donation links and the support card, all behind one switch (SupportReminder.enabled).
         // The `play` flavor planned in CP35 sets this to false: Play does not allow donation links
         // that bypass its billing.
-        buildConfigField("boolean", "SUPPORT_LINKS", "true")
+        buildConfigField("boolean", "SUPPORT_LINKS", "false")
 
         // The update check and the APK install that follows it, off in the F-Droid build (see
         // fdroidBuild above): F-Droid is what updates that build.
-        buildConfigField("boolean", "UPDATE_CHECK", "${!fdroidBuild}")
+        // Veylora must not install an upstream TMPlayer APK over this development build.
+        buildConfigField("boolean", "UPDATE_CHECK", "false")
 
         // English only. Every androidx and Media3 dependency ships translations for ~80
         // locales, and none of this app's own strings are translated, so the rest is dead

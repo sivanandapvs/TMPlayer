@@ -1,4 +1,4 @@
-# Contributing to TMPlayer
+# Contributing to Veylora
 
 Thanks for helping! This project has one guiding principle: **minimal work that works properly**. The less code we own, the less breaks.
 
@@ -44,7 +44,7 @@ Never commit credentials.
 
 ## Translations
 
-TMPlayer ships in 21 languages. English is the source; the other 20 start as machine translations
+Veylora ships in 21 languages. English is the source; the other 20 start as machine translations
 and get better as people who speak them correct them. Fixing a few words you noticed is as welcome
 as reviewing a whole language.
 
@@ -56,12 +56,12 @@ as reviewing a whole language.
   the words inside the braces, and add the forms your language needs (Russian, Ukrainian and Arabic
   need `few` and `many`); the tests name any that are missing.
 - Keep it short where English is short: the TV shows labels at a large size on a narrow rail.
-- Leave names as they are: TMPlayer, Telegram, Android TV, TDLib, mpv, APK and the like.
+- Leave names as they are: Veylora, Telegram, Android TV, TDLib, mpv, APK and the like.
 - A key you leave out reads in English, so a partial file is fine.
 - Run `./gradlew :core:jvmTest` before opening the pull request. It fails on a broken placeholder or
   a missing plural form.
 
-Not set up to build? Open a [translation issue](https://github.com/dracu-lah/TMPlayer/issues/new?template=translation.yml)
+Not set up to build? Open a [translation issue](https://github.com/sivanandapvs/TMPlayer/issues/new?template=translation.yml)
 with the screen, the current text and your suggestion, and it will be fixed for you.
 
 ## Reporting issues

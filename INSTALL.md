@@ -1,3 +1,9 @@
+# Installing the Veylora development build
+
+Build `:app:assembleDebug` and install the locally generated `app/build/outputs/apk/debug/app-debug.apk`. No Veylora release has been published. The guide below is the original upstream TMPlayer installation reference; its download links install upstream builds, not this integration branch.
+
+---
+
 # Installing TMPlayer
 
 TMPlayer is not in any store, and it never will be (it needs its own Telegram API credentials to

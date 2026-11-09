@@ -265,7 +265,7 @@ fun ChatsPage(
                     onStar = { chat -> scope.launch { state.settings.toggleFavorite(chat.id) } },
                     actions = ChatRowActions(
                         onHide = { chat ->
-                            // "Remove from TMPlayer": unticked in Add chats, the one list of which
+                            // "Remove from Veylora": unticked in Add chats, the one list of which
                             // chats show (AddedChats.removing). Gone from the list is the answer; no
                             // toast (user, 2026-10-22). The whole list, before the kids lock, so
                             // under "every chat" the rest of it becomes the choice.
@@ -359,7 +359,7 @@ internal fun ChoiceChips(choices: List<Choice>, inset: androidx.compose.ui.unit.
  * itself any more; pinning, muting, archiving and marking read all stayed there).
  */
 internal class ChatRowActions(
-    /** "Remove from TMPlayer": unticks the chat in Add chats ([com.tmplayer.data.AddedChats.removing]); null leaves the entry out. */
+    /** "Remove from Veylora": unticks the chat in Add chats ([com.tmplayer.data.AddedChats.removing]); null leaves the entry out. */
     val onHide: ((ChatSummary) -> Unit)? = null,
 )
 

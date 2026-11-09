@@ -287,7 +287,7 @@ class BackgroundChecks : JobService() {
             runCatching { manager(context).notify(NOTIFY_NEW_VIDEOS, builder.build()) }
         }
 
-        /** "TMPlayer news", quiet, "New videos", which may make a sound, and the CP76 channels. */
+        /** "Veylora news", quiet, "New videos", which may make a sound, and the CP76 channels. */
         fun ensureChannels(context: Context) {
             // Android 7 and older have no channels: each notification carries its own priority there.
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return

@@ -239,7 +239,7 @@ fun PlayerScreen(
     downloads: DownloadRunner? = null,
     idleLimitMs: Long = StillWatching.IDLE_LIMIT_MS,
     shortcutsOpen: Boolean = false,
-    screenshotDir: () -> java.io.File = { java.io.File(UserDirs.pictures(), "TMPlayer") },
+    screenshotDir: () -> java.io.File = { java.io.File(UserDirs.pictures(), "Veylora") },
     engineFactory: () -> PlaybackEngine = { MpvNatives.create(OpenPrefs.hwdecFor(prefs.now.softwareDecoding)) },
     backdrop: Color = Color.Black,
     /** The loader's picture where there is no online metadata; for the fixtures, which have no TDLib. */

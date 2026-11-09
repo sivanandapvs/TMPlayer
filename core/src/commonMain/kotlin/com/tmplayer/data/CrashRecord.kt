@@ -141,7 +141,7 @@ class CrashRecord(
         // never half a one.
         val partial = File(file.path + ".part")
         partial.writeText(json.toString())
-        partial.renameTo(file)
+        java.nio.file.Files.move(partial.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
     }
 
     companion object {

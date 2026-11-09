@@ -30,7 +30,7 @@ object MprisMapping {
     const val OBJECT_PATH = "/org/mpris/MediaPlayer2"
     const val ROOT = "org.mpris.MediaPlayer2"
     const val PLAYER = "org.mpris.MediaPlayer2.Player"
-    const val IDENTITY = "TMPlayer"
+    const val IDENTITY = "Veylora"
     const val NO_TRACK = "/org/mpris/MediaPlayer2/TrackList/NoTrack"
 
     fun trackPath(trackNumber: Long): DBusPath = DBusPath("/com/tmplayer/track/$trackNumber")

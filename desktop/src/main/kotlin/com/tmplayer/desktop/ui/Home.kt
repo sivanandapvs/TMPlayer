@@ -908,7 +908,7 @@ private val TOP_DRAG = 56.dp
 /** The name's distance from the top of the carousel: level with the window's buttons. */
 private val BRAND_TOP = 14.dp
 
-/** The mark and "TMPlayer" over the carousel's picture or the top strip; the browser's Beta word is the nav bar's, on every page. Choose chats is on Chats and in Settings, not here. */
+/** The mark and "Veylora" over the carousel's picture or the top strip; the browser's Beta word is the nav bar's, on every page. Choose chats is on Chats and in Settings, not here. */
 @Composable
 private fun HomeBrand(modifier: Modifier = Modifier) {
     // The big-screen mode's bar signs the window at its end already.

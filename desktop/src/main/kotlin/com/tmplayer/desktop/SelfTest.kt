@@ -38,7 +38,7 @@ object SelfTest {
             out.appendLine(line)
         }
 
-        say("TMPlayer ${BuildInfo.VERSION} self-test")
+        say("Veylora ${BuildInfo.VERSION} self-test")
         var failed = 0
         fun step(name: String, block: () -> String) {
             val result = runCatching(block)

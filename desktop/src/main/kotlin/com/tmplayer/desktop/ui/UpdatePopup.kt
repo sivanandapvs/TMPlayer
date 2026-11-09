@@ -128,7 +128,7 @@ fun UpdatePopupHost(state: ShellState) {
 }
 
 /**
- * "TMPlayer 1.20.0 is out": what is new as a list that scrolls, how this install takes it, and
+ * "Veylora 1.20.0 is out": what is new as a list that scrolls, how this install takes it, and
  * the choices. The download, the check, the install and Restart now all happen in here, where the
  * corner notice used to show them.
  */

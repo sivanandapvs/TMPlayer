@@ -123,7 +123,7 @@ class DlnaCastService : Service() {
     private fun ensureSession() {
         if (session != null) return
         session = runCatching {
-            MediaSession(this, "TMPlayerDlna").apply {
+            MediaSession(this, "VeyloraDlna").apply {
                 setCallback(object : MediaSession.Callback() {
                     override fun onPlay() { Cast.existing()?.play() }
                     override fun onPause() { Cast.existing()?.pause() }
@@ -204,7 +204,7 @@ class DlnaCastService : Service() {
     }
 
     companion object {
-        private const val TAG = "TMPlayerDlna"
+        private const val TAG = "VeyloraDlna"
         private const val NOTIFICATION_ID = 0x7A3
         private const val MAX_HOLD_MS = 4 * 60 * 60_000L
         private const val ACTION_TOGGLE = "com.tmplayer.cast.TOGGLE"

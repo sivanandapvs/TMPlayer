@@ -10,7 +10,7 @@ import com.tmplayer.i18n.Translator
 object Onboarding {
 
     /** Where "Help translate" points, from Settings' language picker and from About. */
-    const val TRANSLATE_URL = "https://tmplayer.org/translate/"
+    const val TRANSLATE_URL = "https://github.com/sivanandapvs/TMPlayer/tree/feature/torbox-integration-rebrand/core/src/commonMain/resources/i18n"
 
     /**
      * The language picker's choices: the system's own first (tag ""), then each language by its own

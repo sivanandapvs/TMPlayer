@@ -409,7 +409,7 @@ internal fun LibraryRows(state: ShellState, chatList: List<com.tmplayer.data.Cha
         }
     }
     // The picker: the chats added decide what Chats, Home and search show (HX27). The one list of
-    // which chats TMPlayer shows: a chat's "Remove from TMPlayer" unticks a chat here (2026-11-01).
+    // which chats TMPlayer shows: a chat's "Remove from Veylora" unticks a chat here (2026-11-01).
     val added by com.tmplayer.data.AddedChats.choice.collectAsState()
     Action(
         s.pickerRowTitle,

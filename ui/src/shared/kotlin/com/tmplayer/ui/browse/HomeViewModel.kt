@@ -1013,7 +1013,7 @@ fun rememberHomeRows(
     val added by com.tmplayer.data.AddedChats.ids.collectAsState()
     val loadedAll by model.loaded.collectAsState()
     val recentAll by model.recent.collectAsState()
-    // A chat removed from its menu ("Remove from TMPlayer") takes what was read from it off Home at
+    // A chat removed from its menu ("Remove from Veylora") takes what was read from it off Home at
     // once, without waiting for the next refresh. Continue watching and Watch later keep its
     // cards: they are the viewer's own record ([com.tmplayer.data.AddedChats]).
     val loaded = remember(loadedAll, added) { added?.let { ids -> loadedAll.filterKeys { it in ids } } ?: loadedAll }

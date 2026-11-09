@@ -214,7 +214,7 @@ class StorageRelocation(
 
     private fun markerText(): String {
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Date())
-        return "TMPlayer storage, created $date. TMPlayer manages the folders here; do not put your own files in them.\n"
+        return "Veylora storage, created $date. Veylora manages the folders here; do not put your own files in them.\n"
     }
 
     private companion object {

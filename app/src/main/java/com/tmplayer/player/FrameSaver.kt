@@ -67,7 +67,7 @@ object FrameSaver {
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName(title, positionMs))
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/TMPlayer")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Veylora")
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
         val uri = runCatching { resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) }.getOrNull()
@@ -90,7 +90,7 @@ object FrameSaver {
         val name = title.replace(Regex("(?i)\\.(mkv|mp4|m4v|mov|webm|avi|ts|wmv|flv)$"), "")
             .map { c -> if (c < ' ' || c in "\\/:*?\"<>|") ' ' else c }.joinToString("")
             .replace(Regex("\\s+"), " ").take(80).trim().trimEnd('.', ' ')
-            .ifBlank { "TMPlayer" }
+            .ifBlank { "Veylora" }
         val total = (positionMs / 1000).coerceAtLeast(0)
         val h = total / 3600
         val m = (total % 3600) / 60

@@ -137,7 +137,7 @@ object DesktopFolderExport {
     }
 
     /**
-     * "Remove from TMPlayer's downloads after saving": each original whose copy was checked whole
+     * "Remove from Veylora's downloads after saving": each original whose copy was checked whole
      * goes the way Delete on the Downloads page takes it (the file, then the record), so the page,
      * the badges and the space figures agree; Continue watching keeps its place. A file the player
      * holds open on Windows will not delete and is counted as kept.

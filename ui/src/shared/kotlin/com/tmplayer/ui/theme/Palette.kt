@@ -203,7 +203,7 @@ object TmSchemes {
      * Telegram client, and it stays in the accent roles. The neutrals (the background, the
      * surface steps, the outline and the text) have most of their chroma taken out, so the ground
      * is a deep, nearly hueless dark and the artwork on it supplies the colour, the way a cinema
-     * app's does. Muted text is 9.3:1 on the background and 8.6:1 on [Tone.surface].
+     * app's does. Muted text is 9.6:1 on the background and 8.6:1 on [Tone.surface].
      */
     val Dark: ColorScheme = darkColorScheme(
         primary = Color(0xFF79D0F5),
@@ -223,9 +223,9 @@ object TmSchemes {
         onError = Color(0xFF690005),
         errorContainer = Color(0xFF93000A),
         onErrorContainer = Color(0xFFFFDAD6),
-        background = Color(0xFF0C0E10),
+        background = Color(0xFF080713),
         onBackground = Color(0xFFF2F4F5),
-        surface = Color(0xFF0C0E10),
+        surface = Color(0xFF080713),
         onSurface = Color(0xFFF2F4F5),
         surfaceVariant = Color(0xFF40484C),
         onSurfaceVariant = Color(0xFFAEB5BB),

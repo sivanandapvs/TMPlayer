@@ -209,7 +209,7 @@ class WindowMemoryStore(private val file: File, private val screens: () -> List<
         runCatching {
             file.parentFile?.mkdirs()
             val tmp = File(file.parentFile, file.name + ".tmp")
-            tmp.outputStream().use { WindowGeometry.toProperties(saved).store(it, "TMPlayer window") }
+            tmp.outputStream().use { WindowGeometry.toProperties(saved).store(it, "Veylora window") }
             if (!tmp.renameTo(file)) {
                 file.delete()
                 tmp.renameTo(file)

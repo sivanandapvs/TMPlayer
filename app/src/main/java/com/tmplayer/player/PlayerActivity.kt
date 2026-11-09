@@ -595,7 +595,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
     /** The rate found (0 for none), on the main thread: the hook is let go, the display is asked if it is to be. */
     private fun onFrameRateMeasured(fps: Float) {
         player?.clearVideoFrameMetadataListener(fpsListener)
-        Log.i("TMPlayer", "Frame rate: container said none, measured ${if (fps > 0f) "$fps fps" else "nothing steady"}")
+        Log.i("Veylora", "Frame rate: container said none, measured ${if (fps > 0f) "$fps fps" else "nothing steady"}")
         if (fps > 0f && FrameRateMatch.shouldTakeOver(this)) FrameRateMatch.apply(videoSurface(), fps)
     }
 
@@ -709,7 +709,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         if (video.any { it.isSelected }) return false
         if (video.any { group -> (0 until group.length).any { group.isTrackSupported(it, true) } }) return false
         val format = video.first().getTrackFormat(0)
-        Log.w("TMPlayer", "No decoder for the picture: ${format.sampleMimeType} ${format.codecs.orEmpty()} ${format.width}x${format.height}")
+        Log.w("Veylora", "No decoder for the picture: ${format.sampleMimeType} ${format.codecs.orEmpty()} ${format.width}x${format.height}")
         player?.pause()
         val lines = nominalLines(format.width, format.height)
         showError(
@@ -746,7 +746,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         val verdict = DeviceDecode.verdictOf(format)
         val picture = DeviceDecode.pictureOf(format)
         Log.i(
-            "TMPlayer",
+            "Veylora",
             "Picture judged ${verdict.name.lowercase()} here: ${format.sampleMimeType} ${format.codecs.orEmpty()} " +
                 "${format.width}x${format.height} ${format.frameRate} fps, load " +
                 "${picture?.let { com.tmplayer.data.DecodeJudge.load(it, DeviceDecode.cpu) } ?: "?"}% of ${DeviceDecode.cpu}",
@@ -821,7 +821,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * [checkSoftwareDecode].
      */
     private fun tooLargeForSoftware(format: androidx.media3.common.Format): Boolean {
-        Log.w("TMPlayer", "Too large to decode in software here: ${format.sampleMimeType} ${format.width}x${format.height}")
+        Log.w("Veylora", "Too large to decode in software here: ${format.sampleMimeType} ${format.width}x${format.height}")
         // Stopped, not paused: a paused player keeps loading, and a stream it cannot show is
         // downloaded for nothing. TDLib's download goes too, unless the viewer asked to keep the
         // file, since stopping the player leaves TDLib fetching (3.5 MB/s on the 1 GB TV after the
@@ -897,7 +897,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
     /** Plays Telegram's [pick] in place of the upload, from the same moment. */
     private fun handOverTo(pick: com.tmplayer.data.TelegramQuality, copies: List<com.tmplayer.data.TelegramQuality>) {
         if (handingOver || isFinishing) return
-        Log.i("TMPlayer", "Playing Telegram's ${pick.height}p ${pick.codec} copy instead, which decodes in hardware")
+        Log.i("Veylora", "Playing Telegram's ${pick.height}p ${pick.codec} copy instead, which decodes in hardware")
         com.tmplayer.data.SoftwareDecode.rememberHeavy(chatId, messageId)
         player?.pause()
         // The moment to carry on from: the player's, or the saved place it has not sought to yet.
@@ -1004,7 +1004,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         // With the rate measured when the container gave none, so the remembered kind is the right bucket.
         val picture = watchPicture?.let { it.copy(fps = FrameRates.pick(it.fps, derivedFps)) }
         Log.i(
-            "TMPlayer",
+            "Veylora",
             "Watch: ${answer.name.lowercase()}, ${watch.summary()}, ${picture?.label ?: "?"} " +
                 "${picture?.width}x${picture?.height} in ${if (watchSoftware) "software" else "hardware"}",
         )
@@ -1053,7 +1053,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * error underneath, plain text a report or a forum post can carry. Nothing about the account.
      */
     private fun errorDetails(): String = buildString {
-        appendLine("TMPlayer ${com.tmplayer.BuildConfig.VERSION_NAME} (${com.tmplayer.BuildConfig.VERSION_CODE})")
+        appendLine("Veylora ${com.tmplayer.BuildConfig.VERSION_NAME} (${com.tmplayer.BuildConfig.VERSION_CODE})")
         appendLine("${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT})${if (FormFactor.isTv(this@PlayerActivity)) ", TV" else ""}")
         appendLine("${statusTitle.text}: ${statusText.text}")
         appendLine("File: ${mediaFileName.ifBlank { "?" }}, ${mediaMime.ifBlank { "?" }}, ${fileSizeBytes} bytes, ${durationSec} s, ${if (downloadedVideo != null) "downloaded" else "streamed"}")
@@ -1599,7 +1599,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         // waits behind this window, so a video streamed from Telegram gives way to it rather than
         // ending on "Can't play this". A downloaded file plays on: it needs no session.
         lifecycleScope.launch {
-            runCatching { Td.sessionEnded.collect { ended -> if (ended && downloadedVideo == null) leaveForSignIn() } }
+            runCatching { Td.sessionEnded.collect { ended -> if (ended && downloadedVideo == null && cloudTorrentId < 0) leaveForSignIn() } }
         }
         // On a television too: the controls timeout and the remaining time readout apply there.
         lifecycleScope.launch {
@@ -1735,6 +1735,11 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
 
     /** The video's own fields, from the intent that opened it or the one [continueUnseen] set. */
     private fun readItem(from: Intent) {
+        cloudTorrentId = from.getLongExtra("torbox_torrent_id", -1L)
+        cloudFileId = from.getLongExtra("torbox_file_id", -1L)
+        cloudSource = com.tmplayer.torbox.TorBoxSource.entries.firstOrNull { it.name == from.getStringExtra("torbox_source") }
+            ?: com.tmplayer.torbox.TorBoxSource.Torrents
+        cloudUrl = null
         fileId = from.getIntExtra(EXTRA_FILE_ID, 0)
         pressedAt = from.getLongExtra(EXTRA_PRESSED_AT, 0L)
         openedAt = SystemClock.elapsedRealtime()
@@ -1799,7 +1804,64 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * by [continueUnseen] for the next episode played in place; the work that belongs to one video
      * runs in [itemScope], which a change of video cancels.
      */
+    private var cloudTorrentId = -1L
+    private var cloudFileId = -1L
+    private var cloudSource = com.tmplayer.torbox.TorBoxSource.Torrents
+    private var cloudUrl: String? = null
+    private var cloudResumeKey: String? = null
+    private var cloudOpening: Job? = null
+
+    /** HTTPS uses the same renderers, surface, track pickers, controls and media session. */
+    private fun openCloudItem(keepPosition: Boolean = false) {
+        if (cloudOpening?.isActive == true) return
+        cloudOpening = itemScope.launch {
+            try {
+                failurePinned = false
+                failedRetryable = false
+                statusRetry?.visibility = View.GONE
+                recoveryAttempts = 0
+                statusTitle.text = mediaTitle
+                showStatus(L.playerConnecting)
+                savable = false
+                autoplayNext = false
+                val key = withContext(Dispatchers.IO) {
+                    com.tmplayer.torbox.TorBoxCredentials(this@PlayerActivity).read()
+                } ?: throw com.tmplayer.torbox.TorBoxFailure("auth")
+                // Separate per account and file. Neither the API key nor a signed URL is persisted here.
+                cloudResumeKey = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest("$key:${cloudSource.path}:$cloudTorrentId:$cloudFileId".toByteArray())
+                    .joinToString("") { "%02x".format(it) }
+                if (!keepPosition) resumeMs = withContext(Dispatchers.IO) {
+                    getSharedPreferences("torbox-resume", Context.MODE_PRIVATE).getLong(cloudResumeKey, 0L).coerceAtLeast(0)
+                }
+                cloudUrl = withContext(Dispatchers.Default) {
+                    com.tmplayer.torbox.TorBoxApi(com.tmplayer.online.UrlConnectionTransport)
+                        .stream(key, cloudTorrentId, cloudFileId, cloudSource)
+                }
+                videoScale = VideoScale.remembered(settings.videoScaleNow())
+                val prefs = settings.trackPreferencesNow()
+                trackPlan = TrackRules.plan(null, TrackChoice(), prefs, Translator.messages.tag)
+                settingsSubtitlesPending = trackPlan.subtitleSource == TrackSource.Settings
+                downmixChoice = settings.downmixChoiceNow()
+                evenVolumeOn = settings.evenVolumeNow()
+                videoDecoder = settings.videoDecoderNow()
+                subtitleStyle = settings.subtitleStyleNow()
+                applySubtitleStyle()
+                startPlayback(null)
+            } catch (cancel: kotlinx.coroutines.CancellationException) {
+                throw cancel
+            } catch (failure: Exception) {
+                val reason = (failure as? com.tmplayer.torbox.TorBoxFailure)?.reason ?: "playback"
+                showError(Translator.messages.text("torbox.error_$reason"), retryable = true)
+            }
+        }
+    }
+
     private fun openItem() {
+        if (cloudTorrentId >= 0 && cloudFileId >= 0) {
+            openCloudItem()
+            return
+        }
         if (fileId <= 0) {
             showError(L.playerNothingToPlay, retryable = false)
             return
@@ -2071,13 +2133,13 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
     }
 
     /** Builds the player, points it at the file, and puts a video surface in front of it. */
-    private fun startPlayback(client: TdlClient) {
+    private fun startPlayback(client: TdlClient?) {
         val exo = buildPlayer(client).also { built ->
             markStart("player built", STAGE_BUILT)
             built.addListener(playerListener)
             // A plain file for a download, which the default data source reads directly; the TDLib
             // stream for everything else, carrying its type so the right reader is tried first.
-            val source = joinedSource ?: downloadedVideo?.uri()
+            val source = cloudUrl?.let(android.net.Uri::parse) ?: joinedSource ?: downloadedVideo?.uri()
                 ?: tdFileUri(fileId, streamType(mediaMime, mediaFileName))
             // A stream also holds the Wi-Fi up while it plays, which matters once the screen is
             // off and the sound plays on ([PlaybackService]); a file on the disk needs only the CPU.
@@ -2105,7 +2167,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         attachMediaSession(exo)
         attachSurface(exo)
         cast?.let { c ->
-            c.ready = true
+            c.ready = client != null
             if (c.connected && !c.casting) c.begin(resumeMs.takeIf { it > 0 })
         }
     }
@@ -3206,7 +3268,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         sentPipelineKey = key
         sentShapeBox = box
         runCatching { exo.setVideoEffects(pipelineEffects()) }
-            .onFailure { Log.w("TMPlayer", "Picture shape: the effects pipeline refused the change", it) }
+            .onFailure { Log.w("Veylora", "Picture shape: the effects pipeline refused the change", it) }
     }
 
     /** The speed button: every speed to pick from at once, rather than stepping through them. */
@@ -3347,7 +3409,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    private fun buildPlayer(client: TdlClient): ExoPlayer {
+    private fun buildPlayer(client: TdlClient?): ExoPlayer {
         failurePinned = false
         stereoPipeline = false
         sentPipelineKey = null
@@ -3637,7 +3699,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             // the phone, copied into the cache) to the disk and passes every other scheme down.
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(
-                    DefaultDataSource.Factory(
+                    (if (client == null) DefaultDataSource.Factory(this) else DefaultDataSource.Factory(
                         this,
                         // A video joined from byte pieces reads each piece the way a whole file
                         // is read: TDLib's stream, or the disk for a downloaded piece.
@@ -3646,7 +3708,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                             DefaultDataSource.Factory(this, TdDataSource.Factory(client)),
                             ::leftPiece,
                         ),
-                    ).setTransferListener(byteCounter),
+                    )).setTransferListener(byteCounter),
                     extractors,
                 )
                     // A text track saved in a Windows code page rather than UTF-8 reads in its
@@ -3696,7 +3758,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                         elapsedSinceLastFeedMs: Long,
                     ) {
                         Log.w(
-                            "TMPlayer",
+                            "Veylora",
                             "Audio underrun: buffer ${bufferSizeMs}ms, " +
                                 "last fed ${elapsedSinceLastFeedMs}ms ago",
                         )
@@ -4097,7 +4159,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                 firstCuesLogged = true
                 val pictures = cueGroup.cues.count { it.bitmap != null }
                 Log.i(
-                    "TMPlayer",
+                    "Veylora",
                     "Subtitles: first lines at ${player?.currentPosition ?: -1} ms, " +
                         "${cueGroup.cues.size - pictures} text, $pictures pictures; view " +
                         "${subtitleView.width}x${subtitleView.height} alpha ${subtitleView.alpha} " +
@@ -4130,7 +4192,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             // The decoder is known by now: FFmpeg's frames skip the pipeline, so the shape moves.
             renderShape()
             if (videoBackAskedAt == 0L) return
-            Log.i("TMPlayer", "Background audio: picture back in ${SystemClock.elapsedRealtime() - videoBackAskedAt} ms")
+            Log.i("Veylora", "Background audio: picture back in ${SystemClock.elapsedRealtime() - videoBackAskedAt} ms")
             videoBackAskedAt = 0L
         }
 
@@ -4328,7 +4390,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         if (line == subtitleLogLine) return
         subtitleLogLine = line
         firstCuesLogged = false
-        Log.i("TMPlayer", "Subtitles: ${line.ifEmpty { "none in this file" }}")
+        Log.i("Veylora", "Subtitles: ${line.ifEmpty { "none in this file" }}")
     }
 
     /** This video's tracks and speed as they stand, for the resume point. */
@@ -4667,7 +4729,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
     /** Closes the player for the sign in screen behind it, which says why (SessionEndedNote). */
     private fun leaveForSignIn() {
         if (isFinishing) return
-        Log.i("TMPlayer", "the Telegram session ended; closing the player for the sign in")
+        Log.i("Veylora", "the Telegram session ended; closing the player for the sign in")
         finish()
     }
 
@@ -5901,6 +5963,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * a figure the viewer can act on.
      */
     private fun observeDownload() {
+        if (cloudTorrentId >= 0) return
         lifecycleScope.launch {
             val session = Td.awaitAuthorizedSession()
             session.client.getFile(fileId).valueOrNull?.let(::applyDownloadState)
@@ -5921,6 +5984,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * on it): its card has the storyboard and the still fallback.
      */
     private fun startTrickplay() {
+        if (cloudTorrentId >= 0) return
         lifecycleScope.launch {
             val on = Trickplay.PICTURES_SHOWN && runCatching { settings.trickplayNow() }.getOrDefault(true)
             controls?.previewsOff = !on
@@ -6049,7 +6113,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(NetworkMonitor.status, Td.connected) { network, connected ->
-                    network == NetworkStatus.Offline && !connected
+                    network == NetworkStatus.Offline && (cloudTorrentId >= 0 || !connected)
                 }.collect { offline ->
                     val reconnected = networkOffline && !offline
                     networkOffline = offline
@@ -6581,6 +6645,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * reaches them, then left without.
      */
     private fun readChapters() {
+        if (cloudTorrentId >= 0) return
         if (chaptersAsked) return
         chaptersAsked = true
         val language = Translator.messages.tag
@@ -6596,7 +6661,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                             val client = Td.awaitAuthorizedSession().client
                             FileChapters.read(language) { offset, length -> readDownloaded(client, offset, length) }
                         }
-                    }.onFailure { Log.w("TMPlayer", "Chapters not read", it) }.getOrDefault(emptyList())
+                    }.onFailure { Log.w("Veylora", "Chapters not read", it) }.getOrDefault(emptyList())
                 }
                 if (found.isNotEmpty()) {
                     chapters = found
@@ -8074,7 +8139,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                 }
                 if (!nudged && OpeningStall.nudgeDue(local, lastProgressAtMs, SystemClock.elapsedRealtime())) {
                     nudged = true
-                    Td.nudgeForStream(fileId)
+                    if (cloudTorrentId < 0) Td.nudgeForStream(fileId)
                 }
                 if (OpeningStall.stalled(opening = true, local = local, lastProgressAtMs, SystemClock.elapsedRealtime())) {
                     stalledMidPlay = true
@@ -8167,7 +8232,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         if (!FormatRoute.switchesByItself(plan.trackType, plan.toFfmpeg, decodersSwitched, tooSlow, firstFrameReady)) return false
         decodersSwitched += plan.trackType
         Log.w(
-            "TMPlayer",
+            "Veylora",
             "Decoder failed (${error.errorCodeName}) on ${format?.sampleMimeType} ${format?.codecs.orEmpty()}: " +
                 "switching to the ${if (plan.toFfmpeg) "FFmpeg" else "device"} decoder",
         )
@@ -8407,6 +8472,12 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * the episode search are already set up against this file, so there is nothing to rebuild.
      */
     private fun retryPlayback() {
+        if (cloudTorrentId >= 0) {
+            resumeMs = player?.currentPosition ?: resumeMs
+            releasePlayerAndSurface()
+            openCloudItem(keepPosition = true)
+            return
+        }
         failedRetryable = false
         failurePinned = false
         statusRetry?.visibility = View.GONE
@@ -8454,7 +8525,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                 }
                 if (!nudged && OpeningStall.nudgeDue(local, lastProgressAtMs, SystemClock.elapsedRealtime())) {
                     nudged = true
-                    Td.nudgeForStream(fileId)
+                    if (cloudTorrentId < 0) Td.nudgeForStream(fileId)
                 }
                 if (OpeningStall.stalled(opening = true, local = local, lastProgressAtMs, SystemClock.elapsedRealtime())) {
                     showSlowStart()
@@ -8486,6 +8557,10 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * put the ordinary flow back.
      */
     private fun showSlowStart() {
+        if (cloudTorrentId >= 0) {
+            showError(Translator.messages.text("torbox.error_playback"), retryable = true)
+            return
+        }
         openingFilm = false
         statusOverlay.visibility = View.VISIBLE
         statusIcon.visibility = View.GONE
@@ -8746,6 +8821,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * episodes end well over the ceiling.
      */
     private fun trimCache() {
+        if (cloudTorrentId >= 0) return
         App.backgroundScope.launch {
             runCatching { Td.trimStorage() }
             // And the videos with no owner, which the ceiling trim deliberately leaves alone.
@@ -8768,6 +8844,21 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
 
     /** Writes the place; returns the write, for a caller that must wait for it ([saveBeforeInstall]). */
     private fun saveResumePosition(leaving: Boolean = false): Job? {
+        if (cloudTorrentId >= 0) {
+            val exo = player ?: return null
+            val key = cloudResumeKey ?: return null
+            val position = exo.currentPosition.coerceAtLeast(0)
+            val duration = exo.duration
+            return App.backgroundScope.launch(Dispatchers.IO) {
+                runCatching {
+                    val prefs = getSharedPreferences("torbox-resume", Context.MODE_PRIVATE)
+                    val editor = prefs.edit()
+                    if (prefs.all.size >= 500 && !prefs.contains(key)) prefs.all.keys.take(100).forEach(editor::remove)
+                    if (ResumeRules.watched(position, duration)) editor.remove(key) else editor.putLong(key, position)
+                    editor.commit()
+                }
+            }
+        }
         if (savedForHandOver) return null
         val exo = player ?: return null
         // While the video is on a TV, the TV's place is the one to keep.
@@ -9208,6 +9299,16 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             val remembered = ScreenOrientation.entries.firstOrNull { it.name == name } ?: return
             lastOrientation = remembered
         }
+
+        fun cloudIntent(context: Context, file: com.tmplayer.torbox.TorBoxFile): Intent =
+            Intent(context, PlayerActivity::class.java)
+                .putExtra("torbox_torrent_id", file.torrentId)
+                .putExtra("torbox_file_id", file.fileId)
+                .putExtra("torbox_source", file.source.name)
+                .putExtra(EXTRA_TITLE, file.name.substringAfterLast('/'))
+                .putExtra(EXTRA_FILE_NAME, file.name.substringAfterLast('/'))
+                .putExtra(EXTRA_SIZE, file.size)
+                .putExtra(EXTRA_CAN_BE_SAVED, false)
 
         fun intent(context: Context, picked: MediaItem, chatTitle: String = ""): Intent =
             Intent(context, PlayerActivity::class.java).apply {

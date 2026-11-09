@@ -189,7 +189,7 @@ private fun shareLogFile(context: Context, file: File): Boolean = runCatching {
         .setType(MIME)
         .putExtra(Intent.EXTRA_STREAM, uri)
         // For the maintainer, who reads reports in English, like the file's own header.
-        .putExtra(Intent.EXTRA_SUBJECT, "TMPlayer logs") // i18n-ok: mail subject for the maintainer
+        .putExtra(Intent.EXTRA_SUBJECT, "Veylora logs") // i18n-ok: mail subject for the maintainer
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(
         Intent.createChooser(send, L.logsSendTitle)

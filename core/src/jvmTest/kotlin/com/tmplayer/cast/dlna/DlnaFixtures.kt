@@ -21,7 +21,7 @@ object DlnaFixtures {
 
     /** The datagrams of `ssdp-replies.txt` or `ssdp-notify.txt`. */
     fun datagrams(renderer: String, file: String): List<ByteArray> =
-        text("$renderer/$file").split("\n----\n").filter { it.isNotBlank() }.map { it.toByteArray() }
+        text("$renderer/$file").replace("\r\n", "\n").split("\n----\n").filter { it.isNotBlank() }.map { it.toByteArray() }
 
     fun location(renderer: String): String =
         datagrams(renderer, "ssdp-replies.txt").mapNotNull { Ssdp.parse(it)?.location }.first()

@@ -1224,7 +1224,7 @@ private fun EmailAddressPane(
 
 /**
  * The code Telegram mailed to the account's login email, which it uses in place of a text for some
- * accounts. Before this pane the sign in ended in "a step TMPlayer can't do", and such an account
+ * accounts. Before this pane the sign in ended in "a step Veylora can't do", and such an account
  * could not sign in here at all. With the code again on request, and the email reset with its
  * waiting period as TDLib reports it, for somebody who no longer has that mailbox.
  */

@@ -146,7 +146,7 @@ class DesktopPrefs(private val file: File) {
         runCatching {
             file.parentFile?.mkdirs()
             val tmp = File(file.parentFile, file.name + ".tmp")
-            tmp.outputStream().use { p.store(it, "TMPlayer desktop settings") }
+            tmp.outputStream().use { p.store(it, "Veylora desktop settings") }
             // REPLACE_EXISTING, because a plain rename onto an existing file fails on Windows.
             Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
         }.recoverCatching {

@@ -204,7 +204,7 @@ internal class WindowsNotifications(
         runCatching {
             val key = "Software\\Classes\\AppUserModelId\\${WindowsToast.APP_ID}"
             Advapi32Util.registryCreateKey(WinReg.HKEY_CURRENT_USER, key)
-            Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "DisplayName", "TMPlayer")
+            Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "DisplayName", "Veylora")
             iconPath()?.let { Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "IconUri", it) }
         }.onFailure { Logger.w(TAG, "could not register the app id: ${it.message}") }
     }
@@ -220,7 +220,7 @@ internal class WindowsNotifications(
         val key = "Software\\Classes\\${ToastPresses.SCHEME}"
         val command = "$key\\shell\\open\\command"
         Advapi32Util.registryCreateKey(WinReg.HKEY_CURRENT_USER, command)
-        Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "", "URL:TMPlayer")
+        Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "", "URL:Veylora")
         Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, key, "URL Protocol", "")
         Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, command, "", "\"${exe.absolutePath}\" \"%1\"")
         true

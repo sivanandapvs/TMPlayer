@@ -96,7 +96,7 @@ class ChooseChatsBarTest {
     private fun words(node: SemanticsNode) = node.config.getOrNull(SemanticsProperties.Text).orEmpty().map { it.text }
 
     private fun button(activity: ComponentActivity) = nodes(activity).firstOrNull { label in described(it) }
-    private fun brand(activity: ComponentActivity) = nodes(activity).firstOrNull { node -> described(node).any { it.startsWith("TMPlayer") } }
+    private fun brand(activity: ComponentActivity) = nodes(activity).firstOrNull { node -> described(node).any { it.startsWith(com.tmplayer.ui.components.BRAND_NAME) } }
     private fun focused(activity: ComponentActivity) = nodes(activity).firstOrNull { it.config.getOrNull(SemanticsProperties.Focused) == true }
 
     private fun draw(activity: ComponentActivity, out: String) {

@@ -889,7 +889,7 @@ class PlayerCast(
     }
 
     companion object {
-        private const val TAG = "TMPlayerCast"
+        private const val TAG = "VeyloraCast"
         private const val EARLY_FAILURE_MS = 20_000L
         private const val SUB_BASE = 1000L
         private const val VOLUME_STEP = 0.05f

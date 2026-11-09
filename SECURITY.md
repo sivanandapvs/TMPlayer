@@ -1,3 +1,9 @@
+# Veylora development branch
+
+Report issues in this fork at https://github.com/sivanandapvs/TMPlayer/issues. No Veylora security mailbox has been configured. The following policy is retained as the upstream TMPlayer reference and must not be presented as a Veylora-operated contact.
+
+---
+
 # Security policy
 
 ## Supported versions

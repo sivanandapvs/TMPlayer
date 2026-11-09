@@ -198,6 +198,9 @@ fun main(args: Array<String>) {
                 delete = { DownloadIndex.delete(settings, it) },
             ).run()
         }
+        // A Veylora development build must not offer upstream installers or donation prompts.
+        com.tmplayer.data.Updates.enabled = false
+        com.tmplayer.data.SupportReminder.enabled = false
         DesktopUpdates.configure()
         // Before anything can rewrite desktop.properties, which would drop the old update keys.
         Background.scope.launch { runCatching { DesktopUpdates.migrate(DesktopServices.prefs, settings) } }
@@ -252,7 +255,7 @@ fun main(args: Array<String>) {
                 recovery = recovery,
                 onCloseRequest = quit,
                 state = windowState,
-                title = "TMPlayer",
+                title = "Veylora",
                 undecorated = undecorated,
                 icon = rememberVectorPainter(AppLogo.Mark),
                 // The open player hears its keys from the window too, wherever Compose's focus went

@@ -139,7 +139,7 @@ fun main(argv: Array<String>) {
         Window(
             onCloseRequest = ::exitApplication,
             state = state,
-            title = "TMPlayer player (dev): ${file.name}",
+            title = "Veylora player (dev): ${file.name}",
             onPreviewKeyEvent = PlayerKeyRoute::onWindowKey,
         ) {
             // The same ways in as the app's window takes (see Main.kt).
@@ -177,7 +177,7 @@ fun main(argv: Array<String>) {
                 menuOpen = menuPage,
                 idleLimitMs = idleLimit ?: com.tmplayer.player.StillWatching.IDLE_LIMIT_MS,
                 shortcutsOpen = flag("--shortcuts"),
-                screenshotDir = value("--shots")?.let { dir -> { File(dir) } } ?: { File(com.tmplayer.desktop.os.UserDirs.pictures(), "TMPlayer") },
+                screenshotDir = value("--shots")?.let { dir -> { File(dir) } } ?: { File(com.tmplayer.desktop.os.UserDirs.pictures(), "Veylora") },
             )
             LaunchedEffect(engine) {
                 val e = engine ?: return@LaunchedEffect

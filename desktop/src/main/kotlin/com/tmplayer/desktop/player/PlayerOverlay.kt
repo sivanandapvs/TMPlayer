@@ -1719,7 +1719,7 @@ internal fun BoxScope.StatusSheet(
                     var copied by remember(phase) { mutableStateOf(false) }
                     TextButton(onClick = {
                         val details = buildString {
-                            appendLine("TMPlayer ${com.tmplayer.desktop.BuildInfo.VERSION}, ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
+                            appendLine("Veylora ${com.tmplayer.desktop.BuildInfo.VERSION}, ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
                             appendLine(if (subtitle.isNotBlank()) "$title ($subtitle)" else title)
                             appendLine(phase.message)
                         }

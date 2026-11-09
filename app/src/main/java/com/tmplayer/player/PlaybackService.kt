@@ -68,7 +68,7 @@ class PlaybackService : MediaSessionService() {
         setListener(object : MediaSessionService.Listener {
             // Media3 has already logged it; the activity stops the sound and says so.
             override fun onForegroundServiceStartNotAllowedException() {
-                Log.w("TMPlayer", "Background audio could not go back into the foreground")
+                Log.w("Veylora", "Background audio could not go back into the foreground")
                 onCannotContinue?.invoke()
             }
         })
@@ -92,7 +92,7 @@ class PlaybackService : MediaSessionService() {
         held?.let { runCatching { removeSession(it) } }
         held = session
         runCatching { addSession(session) }.onFailure {
-            Log.w("TMPlayer", "Background audio could not take the session", it)
+            Log.w("Veylora", "Background audio could not take the session", it)
             stopSelf()
         }
     }
@@ -168,7 +168,7 @@ class PlaybackService : MediaSessionService() {
             }
             return runCatching { context.startService(Intent(context, PlaybackService::class.java)) }
                 .onFailure {
-                    Log.w("TMPlayer", "Background audio could not start", it)
+                    Log.w("Veylora", "Background audio could not start", it)
                     pending = null
                     onStopRequested = null
                     this.onCannotContinue = null

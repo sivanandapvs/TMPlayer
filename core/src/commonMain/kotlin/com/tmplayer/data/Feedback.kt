@@ -16,9 +16,10 @@ import java.net.URLEncoder
  */
 object Feedback {
 
-    const val ISSUES = "https://github.com/dracu-lah/TMPlayer/issues/new"
+    const val ISSUES = "https://github.com/sivanandapvs/TMPlayer/issues/new"
     const val TEMPLATE = "bug_report.yml"
-    const val EMAIL = "hello@tmplayer.org"
+    // No Veylora support mailbox has been configured. The UI offers this fork's issue tracker.
+    const val EMAIL = ""
 
     /** The bug template's dropdown options. */
     enum class Platform(val option: String) {
@@ -60,7 +61,7 @@ object Feedback {
 
     /** The same facts as an email, for somebody without a GitHub account. */
     fun mailto(facts: Facts): String {
-        val subject = "TMPlayer ${facts.version}: a problem"
+        val subject = "Veylora ${facts.version}: a problem"
         val body = buildString {
             appendLine("Platform: ${facts.platform.option.ifEmpty { "other" }}")
             appendLine("App version: ${facts.version}")

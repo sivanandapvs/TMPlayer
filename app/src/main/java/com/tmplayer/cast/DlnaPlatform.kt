@@ -60,6 +60,6 @@ class AndroidDlnaPlatform(context: Context) : DlnaPlatform {
     }
 
     private companion object {
-        const val TAG = "TMPlayerDlna"
+        const val TAG = "VeyloraDlna"
     }
 }

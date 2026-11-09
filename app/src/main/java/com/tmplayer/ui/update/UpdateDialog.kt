@@ -70,7 +70,7 @@ import com.tmplayer.ui.theme.floatingSurface
 import kotlinx.coroutines.launch
 
 /**
- * The update popup: "TMPlayer 1.20.0 is out", what is new, how it installs, and *Update now*,
+ * The update popup: "Veylora 1.20.0 is out", what is new, how it installs, and *Update now*,
  * *Remind me later* and *Skip this version*. Then the download, and then the install: on Android
  * 12 and later in a session the popup stays up for, saying it is installing (and without Android's
  * question where it allows that, SelfInstaller); before that the system installer's screen takes

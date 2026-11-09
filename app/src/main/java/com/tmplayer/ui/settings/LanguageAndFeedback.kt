@@ -224,11 +224,13 @@ fun FeedbackDialog(onClose: () -> Unit) {
                 TmButton(onClick = { if (openLink(context, issue)) onClose() }, modifier = Modifier.fillMaxWidth()) {
                     Label(s.feedbackOpenGithub)
                 }
+                if (Feedback.EMAIL.isNotBlank()) {
                 TmSecondaryButton(
                     onClick = { if (sendMail(context, Feedback.mailto(facts))) onClose() },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Label(s.feedbackEmail) }
                 Text(s.feedbackEmailDetail(Feedback.EMAIL), style = MaterialTheme.typography.bodySmall, color = Tone.muted)
+                }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TmSecondaryButton(onClick = onClose) { Label(s.commonClose) }
                 }
@@ -239,7 +241,7 @@ fun FeedbackDialog(onClose: () -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(s.feedbackTitle, style = MaterialTheme.typography.headlineSmall, color = Tone.text)
                     Text(s.feedbackBodyTv, style = MaterialTheme.typography.bodyLarge, color = Tone.muted)
-                    Text(
+                    if (Feedback.EMAIL.isNotBlank()) Text(
                         s.feedbackEmailDetailTv(Feedback.EMAIL, facts.version),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Tone.muted,

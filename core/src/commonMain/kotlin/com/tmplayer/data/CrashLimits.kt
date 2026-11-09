@@ -55,7 +55,7 @@ class CrashLimits(
             partial.writeText(
                 JSONObject().put("day", state.day).put("count", state.count).put("seen", JSONArray(state.seen)).toString(),
             )
-            partial.renameTo(file)
+            java.nio.file.Files.move(partial.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         }
     }
 

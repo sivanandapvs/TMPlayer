@@ -33,7 +33,7 @@ import kotlin.math.sin
 
 /**
  * What the device holds, as a small ring: the phone, the television and the desktop draw the same
- * one beside "TMPlayer uses" at the top of the Downloads page and in Settings' Storage (the pie
+ * one beside "Veylora uses" at the top of the Downloads page and in Settings' Storage (the pie
  * the user asked for on 2026-10-18, kept small since 2026-10-22).
  *
  * The ring used to stand large with a legend of six lines, each a button that cleared its part.

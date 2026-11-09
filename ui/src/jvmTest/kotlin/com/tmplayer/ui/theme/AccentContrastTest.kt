@@ -61,8 +61,9 @@ class AccentContrastTest {
     fun `Telegram blue is the palette the app always had`() {
         assertEquals(TmSchemes.Dark, TmSchemes.of(dark = true, accent = Accent.Telegram))
         assertEquals(TmSchemes.Light, TmSchemes.of(dark = false, accent = Accent.Telegram))
-        assertEquals(Color(0xFF79D0F5), TmSchemes.of(dark = true).primary)
-        assertEquals(Color(0xFF00677F), TmSchemes.of(dark = false).primary)
+        assertEquals(Color(0xFF79D0F5), TmSchemes.of(dark = true, accent = Accent.Telegram).primary)
+        assertEquals(Color(0xFF00677F), TmSchemes.of(dark = false, accent = Accent.Telegram).primary)
+        assertEquals(TmSchemes.of(dark = true, accent = Accent.Violet), TmSchemes.of(dark = true))
     }
 
     @Test

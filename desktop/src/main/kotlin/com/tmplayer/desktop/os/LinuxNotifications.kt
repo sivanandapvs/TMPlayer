@@ -324,7 +324,7 @@ internal class LinuxNotifications(
 
     companion object {
         private const val TAG = "LinuxNotifications"
-        const val APP_NAME = "TMPlayer"
+        const val APP_NAME = "Veylora"
         const val SERVICE = "org.freedesktop.Notifications"
         const val OBJECT_PATH = "/org/freedesktop/Notifications"
         const val LAUNCHER_PATH = "/com/canonical/unity/launcherentry/1"

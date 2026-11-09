@@ -111,7 +111,7 @@ class InstanceLock(
         val started = info.startInstant().orElse(null) ?: return false
         val age = java.time.Duration.between(started, java.time.Instant.now()).toMillis()
         if (age < stuckAfterMs) return false
-        Logger.w(TAG, "TMPlayer $pid has held the lock for ${age / 1000} s without a window, ending it")
+        Logger.w(TAG, "Veylora $pid has held the lock for ${age / 1000} s without a window, ending it")
         holder.destroyForcibly()
         runCatching { holder.onExit().get(KILL_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS) }
         // Windows lets go of a dead process's file lock a moment after it is gone.
@@ -208,7 +208,7 @@ class InstanceLock(
             if (reply == STARTING) return Answer.Starting
             if (attempt < CONNECT_ATTEMPTS - 1) Thread.sleep(CONNECT_RETRY_MS)
         }
-        Logger.w(TAG, "another TMPlayer holds the lock but did not answer")
+        Logger.w(TAG, "another Veylora holds the lock but did not answer")
         return Answer.Silent
     }
 

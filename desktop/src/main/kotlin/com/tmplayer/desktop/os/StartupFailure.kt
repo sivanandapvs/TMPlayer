@@ -47,7 +47,7 @@ object StartupFailure {
         if (reported) AppExit.now(1)
         reported = true
         runCatching {
-            System.err.println("E/Startup: TMPlayer could not start")
+            System.err.println("E/Startup: Veylora could not start")
             error.printStackTrace()
             System.err.flush()
         }
@@ -58,13 +58,13 @@ object StartupFailure {
             val trace = StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
             val log = DesktopLog.file?.let { "\n\nThe full log is in $it" }.orEmpty()
             val newer = "\n\nA newer version may already fix this: ${SelfUpdate.DOWNLOAD_PAGE}"
-            val text = JTextArea("TMPlayer could not start.$log$newer\n\n$trace", 16, 72).apply {
+            val text = JTextArea("Veylora could not start.$log$newer\n\n$trace", 16, 72).apply {
                 isEditable = false
                 caretPosition = 0
             }
             val options = arrayOf<Any>("Open the download page", "Close")
             val choice = JOptionPane.showOptionDialog(
-                null, JScrollPane(text), "TMPlayer", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
+                null, JScrollPane(text), "Veylora", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
                 null, options, options[0],
             )
             if (choice == 0) OpenExternal.browseNow(SelfUpdate.DOWNLOAD_PAGE)

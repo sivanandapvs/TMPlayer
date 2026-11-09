@@ -311,7 +311,7 @@ object FolderExport {
     }
 
     /**
-     * "Remove from TMPlayer's downloads after saving": TMPlayer's own copy of each video whose
+     * "Remove from Veylora's downloads after saving": TMPlayer's own copy of each video whose
      * saved copy was checked whole goes, exactly as Delete on the Downloads screen removes it (the
      * file, then the record), so Downloads, the badges and the space figures agree. Where it was
      * watched up to stays in Continue watching, which plays it from the chat from then on.
@@ -379,7 +379,7 @@ object FolderExport {
     private const val EXTERNAL_STORAGE = "com.android.externalstorage.documents"
 
     /** Where Save to gallery puts its copies, as MediaStore's relative path and as the viewer reads it. */
-    private val GALLERY_PATH = Environment.DIRECTORY_MOVIES + "/TMPlayer"
+    private val GALLERY_PATH = Environment.DIRECTORY_MOVIES + "/Veylora"
     private val GALLERY_LABEL = GALLERY_PATH
 
     @Suppress("DEPRECATION")

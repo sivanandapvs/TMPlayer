@@ -156,7 +156,7 @@ enum class Accent(private val labelText: () -> String) {
     val label: String get() = labelText()
 
     companion object {
-        val Default = Telegram
+        val Default = Violet
 
         fun from(stored: String?): Accent = entries.firstOrNull { it.name == stored } ?: Default
     }

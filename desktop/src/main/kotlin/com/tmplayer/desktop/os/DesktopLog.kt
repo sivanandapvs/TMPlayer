@@ -42,7 +42,7 @@ object DesktopLog {
         file = log
         val console = System.err
         System.setErr(PrintStream(Tee(console, out), true, Charsets.UTF_8))
-        System.err.println("TMPlayer ${System.getProperty("jpackage.app-version") ?: "dev"} started ${LocalDateTime.now()}")
+        System.err.println("Veylora ${System.getProperty("jpackage.app-version") ?: "dev"} started ${LocalDateTime.now()}")
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, error ->
             System.err.println("E/Crash: uncaught on ${thread.name}")

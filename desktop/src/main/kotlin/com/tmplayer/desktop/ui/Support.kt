@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * "Support TMPlayer" on the desktop: one link to the support page, which lists both donate links,
+ * "Support Veylora" on the desktop: one link to the support page, which lists both donate links,
  * the star and the share, with an Open button and a QR code for paying from the phone instead.
  * [from] tags the visit (`card1`, `settings`, `about`). The words and address are [About]'s.
  */

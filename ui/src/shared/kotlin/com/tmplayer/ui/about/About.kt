@@ -20,11 +20,11 @@ object About {
 
     val WARRANTY: String get() = L.aboutWarranty
 
-    const val SOURCE = "https://github.com/dracu-lah/TMPlayer"
+    const val SOURCE = "https://github.com/sivanandapvs/TMPlayer"
     const val NOTICES_ONLINE = "$SOURCE/blob/main/THIRD_PARTY_NOTICES.md"
-    const val PRIVACY = "https://tmplayer.org/privacy/"
+    const val PRIVACY = "$SOURCE/blob/feature/torbox-integration-rebrand/docs/VEYLORA-PRIVACY.md"
     const val LEGAL = "https://tmplayer.org/legal/"
-    const val EMAIL = "hello@tmplayer.org"
+    const val EMAIL = ""
     const val SPONSORS = "https://github.com/sponsors/dracu-lah"
     const val COFFEE = "https://buymeacoffee.com/nevil.dev"
 
@@ -37,7 +37,7 @@ object About {
      */
     const val UPI_ID = "nevilnicks4321@okaxis"
     const val UPI_LINK = "upi://pay?pa=$UPI_ID&pn=TMPlayer&cu=INR&tn=TMPlayer%20support"
-    const val SITE = "https://tmplayer.org/"
+    const val SITE = SOURCE
     const val SUPPORT_PAGE = "https://tmplayer.org/support/"
     const val OPENSUBTITLES = "https://www.opensubtitles.com"
     const val SUBDL = "https://subdl.com"
@@ -142,7 +142,7 @@ object About {
                 Link(
                     L.aboutCorrespondingSource,
                     L.aboutCorrespondingSourceDetail,
-                    releaseUrl(version),
+                    "$SOURCE/tree/feature/torbox-integration-rebrand",
                 ),
             ),
         ),
@@ -156,10 +156,7 @@ object About {
         Group(
             L.aboutContact,
             listOf(
-                Link(L.aboutEmail, EMAIL, "mailto:$EMAIL"),
-                Link(L.aboutTelegramChannel, L.aboutTelegramChannelDetail, "https://t.me/tmplayerapp"),
-                Link(L.aboutTelegramGroup, L.aboutTelegramGroupDetail, "https://t.me/tmplayer_chat"),
-                Link("GitHub Discussions", L.aboutDiscussionsDetail, "$SOURCE/discussions"),
+                Link("GitHub", L.feedbackTitle, "$SOURCE/issues"),
                 // Moved here (and to Settings' language picker) from the tour's first page.
                 Link(L.onboardingHelpTranslate, L.onboardingHelpTranslateBody, com.tmplayer.ui.onboarding.Onboarding.TRANSLATE_URL),
             ),

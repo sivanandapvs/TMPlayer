@@ -324,7 +324,7 @@ class DlnaCastSupport(
     override fun setRate(rate: Double) = Unit
 
     companion object {
-        private const val TAG = "TMPlayerDlna"
+        private const val TAG = "VeyloraDlna"
 
         /** Ids in this support's own list; [MergedCastSupport] prefixes them again with the kind. */
         const val ID_PREFIX = "udn:"

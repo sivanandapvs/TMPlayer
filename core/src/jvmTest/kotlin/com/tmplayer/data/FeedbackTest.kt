@@ -21,7 +21,7 @@ class FeedbackTest {
     @Test
     fun `the issue url fills the bug template's fields`() {
         val url = Feedback.issueUrl(phone)
-        assertTrue(url.startsWith("https://github.com/dracu-lah/TMPlayer/issues/new?"))
+        assertTrue(url.startsWith("https://github.com/sivanandapvs/TMPlayer/issues/new?"))
         val q = query(url)
         assertEquals("bug_report.yml", q["template"])
         assertEquals("Android phone or tablet", q["platform"])
@@ -52,7 +52,7 @@ class FeedbackTest {
 
     @Test
     fun `every platform option is one the template offers`() {
-        val template = File("../.github/ISSUE_TEMPLATE/bug_report.yml").readText()
+        val template = File("../.github/ISSUE_TEMPLATE/bug_report.yml").readText().replace("\r\n", "\n")
         for (platform in Feedback.Platform.entries) {
             if (platform.option.isEmpty()) continue
             assertTrue("${platform.option} is not in bug_report.yml", template.contains("- ${platform.option}\n"))
@@ -63,10 +63,10 @@ class FeedbackTest {
     @Test
     fun `the mailto fallback carries the same facts`() {
         val mail = Feedback.mailto(phone)
-        assertTrue(mail.startsWith("mailto:hello@tmplayer.org?subject="))
+        assertTrue(mail.startsWith("mailto:?subject="))
         assertFalse(mail.contains('+'))
         val q = query(mail.replaceFirst("mailto:", "mailto://x/"))
-        assertEquals("TMPlayer 1.23.0: a problem", q["subject"])
+        assertEquals("Veylora 1.23.0: a problem", q["subject"])
         val body = q.getValue("body")
         assertTrue(body.contains("Platform: Android phone or tablet"))
         assertTrue(body.contains("App version: 1.23.0"))

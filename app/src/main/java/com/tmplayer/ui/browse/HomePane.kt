@@ -1550,7 +1550,7 @@ internal fun BoxScope.PhoneHomeCorner(sideways: Boolean, start: Dp, end: Dp, und
     }
 }
 
-/** The mark and "TMPlayer" at the top of a phone's Home, in the colours for art over the carousel. */
+/** The mark and "Veylora" at the top of a phone's Home, in the colours for art over the carousel. */
 @Composable
 internal fun PhoneHomeBrand(modifier: Modifier, onArt: Boolean) {
     com.tmplayer.ui.components.BrandLockup(

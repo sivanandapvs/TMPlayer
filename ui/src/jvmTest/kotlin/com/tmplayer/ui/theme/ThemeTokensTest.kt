@@ -17,7 +17,7 @@ class ThemeTokensTest {
             assertTrue(contrast(scheme.onSurfaceVariant, scheme.surfaceContainerLow) >= 4.5f)
         }
         // The dark figures the palette's KDoc quotes.
-        assertEquals(9.3f, contrast(TmSchemes.Dark.onSurfaceVariant, TmSchemes.Dark.background), 0.1f)
+        assertEquals(9.6f, contrast(TmSchemes.Dark.onSurfaceVariant, TmSchemes.Dark.background), 0.1f)
         assertEquals(8.6f, contrast(TmSchemes.Dark.onSurfaceVariant, TmSchemes.Dark.surfaceContainerLow), 0.1f)
     }
 

@@ -37,7 +37,7 @@ object LogExport {
     ): String {
         val scrubber = LogScrubber(known)
         return buildString {
-            appendLine("TMPlayer logs")
+            appendLine("Veylora logs")
             appendLine("App version: ${facts.version}")
             appendLine("Platform: ${facts.platform.option.ifEmpty { "other" }}")
             appendLine("Device: ${facts.device}")
@@ -113,7 +113,8 @@ class LogScrubber(known: Collection<String> = emptyList()) {
         .map { Regex(Regex.escape(it), RegexOption.IGNORE_CASE) }
 
     fun scrub(line: String): String {
-        var out = line
+        // CDN URLs may carry a credential in either the query or the path.
+        var out = URL.replace(BEARER.replace(line, "[credential]"), "[url]")
         for (name in names) out = name.replace(out, NAME)
         out = EMAIL.replace(out, "[email]")
         out = PATH_FILE.replace(out) { "${it.groupValues[1]}[file]" }
@@ -129,6 +130,9 @@ class LogScrubber(known: Collection<String> = emptyList()) {
         const val MIN_KNOWN = 4
 
         private const val NAME = "[name]"
+
+        private val URL = Regex("""https?://[^\s"'<>]+""", RegexOption.IGNORE_CASE)
+        private val BEARER = Regex("""Bearer\s+[A-Za-z0-9._~+/=-]+""", RegexOption.IGNORE_CASE)
 
         private const val EXTENSIONS =
             "mkv|mp4|m4v|avi|webm|mov|wmv|flv|ts|m2ts|mpg|mpeg|3gp|mp3|m4a|aac|flac|ogg|opus|wav|" +

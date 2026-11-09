@@ -1551,6 +1551,12 @@ private fun Root() {
                     )
                 }
                 if (!keyboard) {
+                    androidx.compose.material3.TextButton(
+                        onClick = { context.startActivity(android.content.Intent(context, com.tmplayer.torbox.TorBoxActivity::class.java)) },
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    ) {
+                        androidx.compose.material3.Text(LocalStrings.current.text("torbox.open"))
+                    }
                     // Under every sign in screen: the line Telegram's terms ask for, the proxy
                     // settings, for a network where Telegram is only reached through one, and Send
                     // logs, for a sign in that is stuck with no error state to Try again from (HX
@@ -1986,7 +1992,7 @@ private fun Root() {
                             // it becomes the choice, so a lock switched off later hides nothing more.
                             val everything = chatsViewModel.everything.value.map { com.tmplayer.data.AddedChat(it.id, it.title) }
                             runCatching { settings.removeChat(chat.id, everything) }
-                                .onFailure { android.util.Log.w("TMPlayer", "removing a chat failed", it) }
+                                .onFailure { android.util.Log.w("Veylora", "removing a chat failed", it) }
                         }
                     },
                     onClearHistory = { scope.launch { settings.clearWatchHistory() } },

@@ -52,6 +52,18 @@ import kotlin.test.assertTrue
  */
 class GarbageInputTest {
 
+    @Test fun torBoxOutsideData() {
+        texts.forEach { text ->
+            survive("TorBox", text) {
+                com.tmplayer.torbox.TorBoxApi.parse(text)?.let { root ->
+                    com.tmplayer.torbox.TorBoxApi.parsePage(root, 0)
+                }
+                com.tmplayer.torbox.TorBoxApi.safeStreamUrl(text)
+            }
+        }
+        assertNoFailures()
+    }
+
     private val failures = mutableListOf<String>()
 
     private fun survive(parser: String, input: Any?, block: () -> Unit) {

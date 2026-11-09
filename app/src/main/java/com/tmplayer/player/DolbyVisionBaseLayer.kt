@@ -85,7 +85,7 @@ class DolbyVisionBaseLayer(
             }.getOrDefault(false)
         }
         android.util.Log.i(
-            "TMPlayer",
+            "Veylora",
             "Dolby Vision ${format.codecs} ${format.width}x${format.height}: screen $screen, decoder $decoder" +
                 if (screen && decoder) "" else ", playing its base layer",
         )

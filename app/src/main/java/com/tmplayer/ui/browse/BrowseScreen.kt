@@ -238,7 +238,7 @@ internal fun BrowseScreen(
     /** How many downloads are running, for the badge on that row of the drawer and the rail. */
     downloadCount: Int = 0,
     onToggleFavorite: (ChatSummary) -> Unit = {},
-    /** "Remove from TMPlayer" in a chat's menu: unticks it in the added chats ([com.tmplayer.data.AddedChats.removing]). */
+    /** "Remove from Veylora" in a chat's menu: unticks it in the added chats ([com.tmplayer.data.AddedChats.removing]). */
     onRemoveChat: (ChatSummary) -> Unit = {},
     onRestartMedia: (ResumeRecord) -> Unit = {},
     onForgetMedia: (ResumeRecord) -> Unit = {},

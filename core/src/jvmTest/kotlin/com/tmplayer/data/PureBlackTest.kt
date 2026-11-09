@@ -94,9 +94,9 @@ class PureBlackTest {
     }
 
     @Test
-    fun `the accent is Telegram blue until one is picked, and outlives a sign out`() = runBlocking {
-        assertEquals(Accent.Telegram, settings.accent.first())
-        assertEquals(Accent.Telegram, Accent.from("Nonsense"))
+    fun `the accent is Veylora violet until one is picked, and outlives a sign out`() = runBlocking {
+        assertEquals(Accent.Violet, settings.accent.first())
+        assertEquals(Accent.Violet, Accent.from("Nonsense"))
         assertEquals(Accent.Custom, Accent.entries.last())
         assertTrue(Accent.Monochrome in Accent.entries)
         settings.setAccent(Accent.Red)

@@ -652,6 +652,14 @@ fun SettingsScreen(
         // "Recommended for this device" (CP68), above the categories while anything recommended
         // for a device short of memory or storage is still off. It draws nothing otherwise.
         if (page == null) {
+            item(key = "torbox") {
+                ActionRow(
+                    title = s.text("torbox.title"),
+                    subtitle = s.text("torbox.settings_detail"),
+                    icon = TmIcons.Play,
+                    onClick = { context.startActivity(Intent(context, com.tmplayer.torbox.TorBoxActivity::class.java)) },
+                )
+            }
             item {
                 com.tmplayer.ui.onboarding.DeviceFitSettingsCard(
                     settings,
@@ -1281,7 +1289,7 @@ fun SettingsScreen(
                 }
                 // The picker, always listed: the chats added decide what Chats, Home and search
                 // show. The one list of which chats TMPlayer shows (2026-11-01): a chat's menu
-                // "Remove from TMPlayer" unticks a chat here, and Home's Recently added follows it.
+                // "Remove from Veylora" unticks a chat here, and Home's Recently added follows it.
                 item {
                     val added by com.tmplayer.data.AddedChats.choice.collectAsState()
                     ActionRow(

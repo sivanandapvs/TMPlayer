@@ -160,7 +160,7 @@ internal class LinuxKeepAwake(
 
     companion object {
         private const val TAG = SerialKeepAwake.TAG
-        private const val APP = "TMPlayer"
+        private const val APP = "Veylora"
         const val SCREENSAVER = "org.freedesktop.ScreenSaver"
         const val POWER = "org.freedesktop.PowerManagement"
         const val GNOME = "org.gnome.SessionManager"

@@ -1,4 +1,4 @@
-TMPlayer is a player for the videos already in your own Telegram chats and channels. Sign in once and watch them on an Android TV or Google TV, a Fire TV stick, an Android phone or tablet, or a Windows, macOS or Linux computer. It is free, open source and unofficial.
+Veylora is a player for the videos already in your own Telegram chats and channels. Sign in once and watch them on an Android TV or Google TV, a Fire TV stick, an Android phone or tablet, or a Windows, macOS or Linux computer. It is free, open source and unofficial.
 
 A video starts within seconds while it is still arriving, so a large file never has to download first, and seeking jumps straight to the part you asked for.
 
@@ -18,8 +18,8 @@ Everywhere:
 - Night mode for sound keeps dialogue clear and loud scenes quiet; volume boost for quiet files.
 - Videos posted in pieces play as one video; archives that cannot be played are listed with the reason.
 - Light and Dark themes with a Pure black switch for OLED screens, nine accent colours, and 21 languages.
-- No ads of its own, no analytics, no server run by the developer. TMPlayer talks to Telegram directly through TDLib, Telegram's own library, and your data stays on your devices.
+- No ads of its own, no analytics, no server run by the developer. Veylora talks to Telegram directly through TDLib, Telegram's own library, and your data stays on your devices.
 
-TMPlayer only plays what is already in your chats. Use it with videos you are allowed to watch.
+Veylora only plays what is already in your chats. Use it with videos you are allowed to watch.
 
-TMPlayer is an unofficial client. It is not affiliated with, endorsed by, or connected to Telegram FZ-LLC. Source code: github.com/dracu-lah/TMPlayer, under the GPL-3.0.
+Veylora is an unofficial client. It is not affiliated with, endorsed by, or connected to Telegram FZ-LLC. Source code: github.com/sivanandapvs/TMPlayer, under the GPL-3.0.
