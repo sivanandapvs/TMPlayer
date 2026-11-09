@@ -44,7 +44,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null || true
+          # Temporarily disable pipefail: `yes` may receive SIGPIPE after sdkmanager
+          # has accepted every licence. Preserve sdkmanager's actual exit status.
+          set +o pipefail
+          yes | sdkmanager --licenses >/dev/null
+          set -o pipefail
           sdkmanager \
             'platforms;android-37' \
             'build-tools;36.0.0' \
@@ -101,7 +105,7 @@ jobs:
       # The local AAR is now present, so Gradle selects the custom decoder build,
       # not the reduced Maven Central fallback.
       - name: Build Veylora debug APK
-        run: ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain :app:assembleDebug
+        run: ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain :app:assembleDebug -PtmRequireMedia3ext=true
 
       - name: Verify APK identity and packaged libraries
         id: verify
@@ -113,7 +117,53 @@ jobs:
           BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK")"
           printf '%s\n' "$BADGING" | grep -F "package: name='com.tmplayer'"
           printf '%s\n' "$BADGING" | grep -F "application-label:'Veylora'"
-          NATIVE_COUNT="$(unzip -Z1 "$APK" | grep -Ec '^lib/[^/]+/[^/]+\.so$' || true)"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          NATIVE_COUNT="$(unzip -Z1 "$APK" | grep -Ec '^lib/[^/]+/[^/]+\.so          mkdir -p dist
+          cp "$APK" dist/Veylora-debug.apk
+          cp build/media3ext/custom-aar.sha256 dist/
+          sha256sum dist/Veylora-debug.apk | tee dist/SHA256SUMS.txt
+          {
+            echo 'application_id=com.tmplayer'
+            echo 'application_label=Veylora'
+            echo 'ffmpeg_extension=custom tm2 AAR'
+            echo "native_library_entries=$NATIVE_COUNT"
+            echo "apk_bytes=$(stat -c '%s' dist/Veylora-debug.apk)"
+          } | tee dist/BUILD-INFO.txt
+          echo 'verified=true' >> "$GITHUB_OUTPUT"
+
+      # Tests are deliberately after packaging: a test failure must not discard
+      # an APK which was built and verified successfully.
+      - name: Run shared and Android unit tests
+        if: always()
+        run: |
+          ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain \
+            :core:jvmTest :ui:jvmTest :app:testDebugUnitTest
+
+      - name: Upload Veylora APK with custom FFmpeg
+        if: always() && steps.verify.outputs.verified == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Veylora-debug-custom-ffmpeg-${{ github.sha }}
+          path: |
+            dist/Veylora-debug.apk
+            dist/SHA256SUMS.txt
+            dist/custom-aar.sha256
+            dist/BUILD-INFO.txt
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload build and test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Veylora-build-reports-${{ github.run_number }}
+          path: |
+            core/build/reports/tests/
+            ui/build/reports/tests/
+            app/build/reports/tests/
+          retention-days: 14
+          if-no-files-found: ignore
+ || true)"
           test "$NATIVE_COUNT" -gt 0
           mkdir -p dist
           cp "$APK" dist/Veylora-debug.apk
