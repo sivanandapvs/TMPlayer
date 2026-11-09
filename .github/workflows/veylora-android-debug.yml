@@ -1,0 +1,162 @@
+name: Veylora Android Debug APK (Custom FFmpeg)
+
+on:
+  push:
+    branches:
+      - feature/torbox-integration-rebrand
+  pull_request:
+    branches:
+      - feature/torbox-integration-rebrand
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veylora-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-debug:
+    name: Build custom FFmpeg and Veylora APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Check out integration branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            'platforms;android-37' \
+            'build-tools;36.0.0' \
+            'platform-tools' \
+            'ndk;25.2.9519653' \
+            'cmake;3.22.1'
+
+      - name: Install FFmpeg build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes curl make meson ninja-build nasm pkg-config patch
+
+      - name: Cache FFmpeg source downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/media3ext/downloads
+            build/media3ext/ffmpeg-cache
+          key: veylora-ffmpeg-sources-${{ runner.os }}-${{ hashFiles('scripts/build-media3ext.sh', 'scripts/media3ext/tmplayer-decoders.patch') }}
+          restore-keys: |
+            veylora-ffmpeg-sources-${{ runner.os }}-
+
+      - name: Verify JDK and Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -version
+          ./gradlew --version
+          test -d "$ANDROID_HOME/platforms/android-37"
+          test -x "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          test -d "$ANDROID_HOME/ndk/25.2.9519653"
+          test -x "$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+          command -v meson
+          command -v ninja
+          command -v nasm
+
+      # This builds the exact AAR app/build.gradle.kts prefers over Maven Central.
+      # The script is pinned to the project's nextlib version, source commit and SHA-256.
+      - name: Build custom FFmpeg extension AAR
+        env:
+          JOBS: '2'
+          GRADLE_WORKERS: '2'
+        run: bash scripts/build-media3ext.sh
+
+      - name: Verify custom FFmpeg extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAR='build/media3ext/nextlib-media3ext-1.11.1-0.16.0-tm2.aar'
+          test -s "$AAR"
+          unzip -t "$AAR"
+          sha256sum "$AAR" | tee build/media3ext/custom-aar.sha256
+
+      # The local AAR is now present, so Gradle selects the custom decoder build,
+      # not the reduced Maven Central fallback.
+      - name: Build Veylora debug APK
+        run: ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain :app:assembleDebug
+
+      - name: Verify APK identity and packaged libraries
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK='app/build/outputs/apk/debug/app-debug.apk'
+          test -s "$APK"
+          BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -F "package: name='com.tmplayer'"
+          printf '%s\n' "$BADGING" | grep -F "application-label:'Veylora'"
+          NATIVE_COUNT="$(unzip -Z1 "$APK" | grep -Ec '^lib/[^/]+/[^/]+\.so$' || true)"
+          test "$NATIVE_COUNT" -gt 0
+          mkdir -p dist
+          cp "$APK" dist/Veylora-debug.apk
+          cp build/media3ext/custom-aar.sha256 dist/
+          sha256sum dist/Veylora-debug.apk | tee dist/SHA256SUMS.txt
+          {
+            echo 'application_id=com.tmplayer'
+            echo 'application_label=Veylora'
+            echo 'ffmpeg_extension=custom tm2 AAR'
+            echo "native_library_entries=$NATIVE_COUNT"
+            echo "apk_bytes=$(stat -c '%s' dist/Veylora-debug.apk)"
+          } | tee dist/BUILD-INFO.txt
+          echo 'verified=true' >> "$GITHUB_OUTPUT"
+
+      # Tests are deliberately after packaging: a test failure must not discard
+      # an APK which was built and verified successfully.
+      - name: Run shared and Android unit tests
+        if: always()
+        run: |
+          ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain \
+            :core:jvmTest :ui:jvmTest :app:testDebugUnitTest
+
+      - name: Upload Veylora APK with custom FFmpeg
+        if: always() && steps.verify.outputs.verified == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Veylora-debug-custom-ffmpeg-${{ github.sha }}
+          path: |
+            dist/Veylora-debug.apk
+            dist/SHA256SUMS.txt
+            dist/custom-aar.sha256
+            dist/BUILD-INFO.txt
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload build and test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Veylora-build-reports-${{ github.run_number }}
+          path: |
+            core/build/reports/tests/
+            ui/build/reports/tests/
+            app/build/reports/tests/
+          retention-days: 14
+          if-no-files-found: ignore
