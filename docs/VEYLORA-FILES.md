@@ -1,173 +1,185 @@
 # Veylora changed and new files
 
-Snapshot of implementation files relative to origin/main. The debug APK is an ignored build artifact, not committed source.
+Snapshot relative to fetched `origin/main` (`b4e93bf9`). A means added, M means modified,
+and D means deleted. The APK and test reports are ignored build artifacts, not source commits.
+TV and desktop assets changed during the earlier branding pass; no TV or EXE deliverable is
+claimed. These platforms are deferred in [VEYLORA-PENDING.md](VEYLORA-PENDING.md).
 
-- `CONTRIBUTING.md`
-- `INSTALL.md`
-- `README.md`
-- `SECURITY.md`
-- `app/build.gradle.kts`
-- `app/src/main/AndroidManifest.xml`
-- `app/src/main/java/com/tmplayer/MainActivity.kt`
-- `app/src/main/java/com/tmplayer/cast/DlnaCastService.kt`
-- `app/src/main/java/com/tmplayer/cast/DlnaCastSupport.kt`
-- `app/src/main/java/com/tmplayer/cast/DlnaPlatform.kt`
-- `app/src/main/java/com/tmplayer/data/AppNotices.kt`
-- `app/src/main/java/com/tmplayer/data/BackgroundChecks.kt`
-- `app/src/main/java/com/tmplayer/data/FolderExport.kt`
-- `app/src/main/java/com/tmplayer/data/UpdatedReceiver.kt`
-- `app/src/main/java/com/tmplayer/player/CuelessMatroskaSeek.kt`
-- `app/src/main/java/com/tmplayer/player/DolbyVisionBaseLayer.kt`
-- `app/src/main/java/com/tmplayer/player/FrameSaver.kt`
-- `app/src/main/java/com/tmplayer/player/PlaybackService.kt`
-- `app/src/main/java/com/tmplayer/player/PlayerActivity.kt`
-- `app/src/main/java/com/tmplayer/player/PlayerCast.kt`
-- `app/src/main/java/com/tmplayer/torbox/TorBoxActivity.kt`
-- `app/src/main/java/com/tmplayer/torbox/TorBoxCredentials.kt`
-- `app/src/main/java/com/tmplayer/torbox/TorBoxViewModel.kt`
-- `app/src/main/java/com/tmplayer/ui/auth/LoginScreen.kt`
-- `app/src/main/java/com/tmplayer/ui/browse/BrowseScreen.kt`
-- `app/src/main/java/com/tmplayer/ui/browse/HomePane.kt`
-- `app/src/main/java/com/tmplayer/ui/settings/LanguageAndFeedback.kt`
-- `app/src/main/java/com/tmplayer/ui/settings/LogActions.kt`
-- `app/src/main/java/com/tmplayer/ui/settings/SettingsScreen.kt`
-- `app/src/main/java/com/tmplayer/ui/settings/Support.kt`
-- `app/src/main/java/com/tmplayer/ui/update/UpdateDialog.kt`
-- `app/src/main/res/drawable-nodpi/tv_banner.png`
-- `app/src/main/res/drawable/ic_launcher_background.xml`
-- `app/src/main/res/drawable/ic_launcher_foreground.xml`
-- `app/src/main/res/drawable/ic_launcher_monochrome.xml`
-- `app/src/main/res/drawable/ic_logo.xml`
-- `app/src/main/res/drawable/tv_banner.xml`
-- `app/src/main/res/mipmap-hdpi/ic_launcher.png`
-- `app/src/main/res/mipmap-hdpi/ic_launcher_round.png`
-- `app/src/main/res/mipmap-mdpi/ic_launcher.png`
-- `app/src/main/res/mipmap-mdpi/ic_launcher_round.png`
-- `app/src/main/res/mipmap-xhdpi/ic_launcher.png`
-- `app/src/main/res/mipmap-xhdpi/ic_launcher_round.png`
-- `app/src/main/res/mipmap-xxhdpi/ic_launcher.png`
-- `app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png`
-- `app/src/main/res/mipmap-xxxhdpi/ic_launcher.png`
-- `app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png`
-- `app/src/main/res/values-night/colors.xml`
-- `app/src/main/res/values-television/colors.xml`
-- `app/src/main/res/values-v31/themes.xml`
-- `app/src/main/res/values/colors.xml`
-- `app/src/main/res/values/strings.xml`
-- `app/src/test/java/com/tmplayer/torbox/TorBoxFocusTest.kt`
-- `app/src/test/java/com/tmplayer/torbox/TorBoxPlaybackIntentTest.kt`
-- `app/src/test/java/com/tmplayer/ui/browse/ChooseChatsBarTest.kt`
-- `app/src/test/java/com/tmplayer/ui/settings/DownloadLocationPhoneTest.kt`
-- `art/veylora/adaptive-background.png`
-- `art/veylora/adaptive-background.svg`
-- `art/veylora/adaptive-foreground.png`
-- `art/veylora/adaptive-foreground.svg`
-- `art/veylora/launcher.png`
-- `art/veylora/launcher.svg`
-- `art/veylora/logo-dark.png`
-- `art/veylora/logo-dark.svg`
-- `art/veylora/logo-light.png`
-- `art/veylora/logo-light.svg`
-- `art/veylora/monochrome.png`
-- `art/veylora/monochrome.svg`
-- `art/veylora/primary.png`
-- `art/veylora/primary.svg`
-- `art/veylora/splash.png`
-- `art/veylora/splash.svg`
-- `art/veylora/symbol.png`
-- `art/veylora/symbol.svg`
-- `core/src/commonMain/kotlin/com/tmplayer/data/CrashLimits.kt`
-- `core/src/commonMain/kotlin/com/tmplayer/data/CrashRecord.kt`
-- `core/src/commonMain/kotlin/com/tmplayer/data/Feedback.kt`
-- `core/src/commonMain/kotlin/com/tmplayer/data/LogExport.kt`
-- `core/src/commonMain/resources/i18n/ar.json`
-- `core/src/commonMain/resources/i18n/bn.json`
-- `core/src/commonMain/resources/i18n/de.json`
-- `core/src/commonMain/resources/i18n/en.json`
-- `core/src/commonMain/resources/i18n/es-419.json`
-- `core/src/commonMain/resources/i18n/fa.json`
-- `core/src/commonMain/resources/i18n/fr.json`
-- `core/src/commonMain/resources/i18n/hi.json`
-- `core/src/commonMain/resources/i18n/id.json`
-- `core/src/commonMain/resources/i18n/it.json`
-- `core/src/commonMain/resources/i18n/ja.json`
-- `core/src/commonMain/resources/i18n/ko.json`
-- `core/src/commonMain/resources/i18n/ml.json`
-- `core/src/commonMain/resources/i18n/pl.json`
-- `core/src/commonMain/resources/i18n/pt-BR.json`
-- `core/src/commonMain/resources/i18n/ru.json`
-- `core/src/commonMain/resources/i18n/tr.json`
-- `core/src/commonMain/resources/i18n/uk.json`
-- `core/src/commonMain/resources/i18n/vi.json`
-- `core/src/commonMain/resources/i18n/zh-CN.json`
-- `core/src/commonMain/resources/i18n/zh-TW.json`
-- `core/src/jvmTest/kotlin/com/tmplayer/cast/dlna/DlnaFixtures.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/data/FeedbackTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/data/GarbageInputTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/data/LogExportTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/data/PureBlackTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/data/StorageRelocationPlanTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/i18n/TranslatorTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxApiTest.kt`
-- `core/src/pureMain/kotlin/com/tmplayer/data/Appearance.kt`
-- `core/src/pureMain/kotlin/com/tmplayer/torbox/TorBoxApi.kt`
-- `core/src/pureMain/kotlin/com/tmplayer/torbox/TorBoxMedia.kt`
-- `desktop/packaging/icons/hicolor/128x128.png`
-- `desktop/packaging/icons/hicolor/16x16.png`
-- `desktop/packaging/icons/hicolor/24x24.png`
-- `desktop/packaging/icons/hicolor/256x256.png`
-- `desktop/packaging/icons/hicolor/32x32.png`
-- `desktop/packaging/icons/hicolor/48x48.png`
-- `desktop/packaging/icons/hicolor/512x512.png`
-- `desktop/packaging/icons/hicolor/64x64.png`
-- `desktop/packaging/icons/tmplayer.icns`
-- `desktop/packaging/icons/tmplayer.ico`
-- `desktop/packaging/icons/tmplayer.png`
-- `desktop/packaging/icons/tmplayer.svg`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/DesktopFolderExport.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/DesktopPrefs.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/Main.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/SelfTest.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/StorageRelocation.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/cast/CastClient.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/DesktopLog.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/LinuxKeepAwake.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/LinuxNotifications.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/MacKeepAwake.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/Mpris.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/SingleInstance.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/StartupFailure.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/WindowMemory.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/os/WindowsNotifications.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/player/DevPlayerMain.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerExtras.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerOverlay.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerScreen.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Chats.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Home.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/LanguageAndFeedback.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/SettingsPages.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Support.kt`
-- `desktop/src/main/kotlin/com/tmplayer/desktop/ui/UpdatePopup.kt`
-- `docs/ARCHITECTURE.md`
-- `docs/BUILDING.md`
-- `docs/VEYLORA-DEPENDENCIES.md`
-- `docs/VEYLORA-FILES.md`
-- `docs/VEYLORA-INTEGRATION.md`
-- `docs/VEYLORA-PRIVACY.md`
-- `docs/VEYLORA-PROVENANCE.md`
-- `docs/VEYLORA-UPSTREAM-AUDIT.md`
-- `fastlane/metadata/android/en-US/full_description.txt`
-- `fastlane/metadata/android/en-US/title.txt`
-- `scripts/build-veylora-assets.py`
-- `ui/src/jvmTest/kotlin/com/tmplayer/ui/theme/AccentContrastTest.kt`
-- `ui/src/jvmTest/kotlin/com/tmplayer/ui/theme/ThemeTokensTest.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/about/About.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/browse/HomeViewModel.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/components/AppLogo.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/components/LogoMark.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/components/StorageDonut.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/onboarding/Onboarding.kt`
-- `ui/src/shared/kotlin/com/tmplayer/ui/theme/Palette.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxCacheTest.kt`
-- `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxScaleTest.kt`
+Files: 174.
+
+| Status | File |
+| --- | --- |
+| M | `CONTRIBUTING.md` |
+| M | `INSTALL.md` |
+| M | `README.md` |
+| M | `SECURITY.md` |
+| M | `app/build.gradle.kts` |
+| M | `app/src/main/AndroidManifest.xml` |
+| M | `app/src/main/java/com/tmplayer/MainActivity.kt` |
+| M | `app/src/main/java/com/tmplayer/cast/DlnaCastService.kt` |
+| M | `app/src/main/java/com/tmplayer/cast/DlnaCastSupport.kt` |
+| M | `app/src/main/java/com/tmplayer/cast/DlnaPlatform.kt` |
+| M | `app/src/main/java/com/tmplayer/data/AppNotices.kt` |
+| M | `app/src/main/java/com/tmplayer/data/BackgroundChecks.kt` |
+| M | `app/src/main/java/com/tmplayer/data/FolderExport.kt` |
+| M | `app/src/main/java/com/tmplayer/data/UpdatedReceiver.kt` |
+| M | `app/src/main/java/com/tmplayer/player/CuelessMatroskaSeek.kt` |
+| M | `app/src/main/java/com/tmplayer/player/DolbyVisionBaseLayer.kt` |
+| M | `app/src/main/java/com/tmplayer/player/FrameSaver.kt` |
+| M | `app/src/main/java/com/tmplayer/player/PlaybackService.kt` |
+| M | `app/src/main/java/com/tmplayer/player/PlayerActivity.kt` |
+| M | `app/src/main/java/com/tmplayer/player/PlayerCast.kt` |
+| A | `app/src/main/java/com/tmplayer/torbox/TorBoxActivity.kt` |
+| A | `app/src/main/java/com/tmplayer/torbox/TorBoxCredentials.kt` |
+| A | `app/src/main/java/com/tmplayer/torbox/TorBoxViewModel.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/auth/LoginScreen.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/browse/BrowseScreen.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/browse/HomePane.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/settings/LanguageAndFeedback.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/settings/LogActions.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/settings/SettingsScreen.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/settings/Support.kt` |
+| M | `app/src/main/java/com/tmplayer/ui/update/UpdateDialog.kt` |
+| A | `app/src/main/res/drawable-nodpi/tv_banner.png` |
+| M | `app/src/main/res/drawable/ic_launcher_background.xml` |
+| M | `app/src/main/res/drawable/ic_launcher_foreground.xml` |
+| M | `app/src/main/res/drawable/ic_launcher_monochrome.xml` |
+| M | `app/src/main/res/drawable/ic_logo.xml` |
+| D | `app/src/main/res/drawable/tv_banner.xml` |
+| A | `app/src/main/res/mipmap-hdpi/ic_launcher.png` |
+| A | `app/src/main/res/mipmap-hdpi/ic_launcher_round.png` |
+| A | `app/src/main/res/mipmap-mdpi/ic_launcher.png` |
+| A | `app/src/main/res/mipmap-mdpi/ic_launcher_round.png` |
+| A | `app/src/main/res/mipmap-xhdpi/ic_launcher.png` |
+| A | `app/src/main/res/mipmap-xhdpi/ic_launcher_round.png` |
+| A | `app/src/main/res/mipmap-xxhdpi/ic_launcher.png` |
+| A | `app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png` |
+| A | `app/src/main/res/mipmap-xxxhdpi/ic_launcher.png` |
+| A | `app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png` |
+| M | `app/src/main/res/values-night/colors.xml` |
+| M | `app/src/main/res/values-television/colors.xml` |
+| A | `app/src/main/res/values-v31/themes.xml` |
+| M | `app/src/main/res/values/colors.xml` |
+| M | `app/src/main/res/values/strings.xml` |
+| A | `app/src/test/java/com/tmplayer/torbox/TorBoxFocusTest.kt` |
+| A | `app/src/test/java/com/tmplayer/torbox/TorBoxPlaybackIntentTest.kt` |
+| A | `app/src/test/java/com/tmplayer/torbox/TorBoxSessionTest.kt` |
+| M | `app/src/test/java/com/tmplayer/ui/browse/ChooseChatsBarTest.kt` |
+| M | `app/src/test/java/com/tmplayer/ui/settings/DownloadLocationPhoneTest.kt` |
+| A | `art/veylora/adaptive-background.png` |
+| A | `art/veylora/adaptive-background.svg` |
+| A | `art/veylora/adaptive-foreground.png` |
+| A | `art/veylora/adaptive-foreground.svg` |
+| A | `art/veylora/launcher.png` |
+| A | `art/veylora/launcher.svg` |
+| A | `art/veylora/logo-dark.png` |
+| A | `art/veylora/logo-dark.svg` |
+| A | `art/veylora/logo-light.png` |
+| A | `art/veylora/logo-light.svg` |
+| A | `art/veylora/monochrome.png` |
+| A | `art/veylora/monochrome.svg` |
+| A | `art/veylora/primary.png` |
+| A | `art/veylora/primary.svg` |
+| A | `art/veylora/splash.png` |
+| A | `art/veylora/splash.svg` |
+| A | `art/veylora/symbol.png` |
+| A | `art/veylora/symbol.svg` |
+| M | `core/src/commonMain/kotlin/com/tmplayer/data/CrashLimits.kt` |
+| M | `core/src/commonMain/kotlin/com/tmplayer/data/CrashRecord.kt` |
+| M | `core/src/commonMain/kotlin/com/tmplayer/data/Feedback.kt` |
+| M | `core/src/commonMain/kotlin/com/tmplayer/data/LogExport.kt` |
+| M | `core/src/commonMain/resources/i18n/ar.json` |
+| M | `core/src/commonMain/resources/i18n/bn.json` |
+| M | `core/src/commonMain/resources/i18n/de.json` |
+| M | `core/src/commonMain/resources/i18n/en.json` |
+| M | `core/src/commonMain/resources/i18n/es-419.json` |
+| M | `core/src/commonMain/resources/i18n/fa.json` |
+| M | `core/src/commonMain/resources/i18n/fr.json` |
+| M | `core/src/commonMain/resources/i18n/hi.json` |
+| M | `core/src/commonMain/resources/i18n/id.json` |
+| M | `core/src/commonMain/resources/i18n/it.json` |
+| M | `core/src/commonMain/resources/i18n/ja.json` |
+| M | `core/src/commonMain/resources/i18n/ko.json` |
+| M | `core/src/commonMain/resources/i18n/ml.json` |
+| M | `core/src/commonMain/resources/i18n/pl.json` |
+| M | `core/src/commonMain/resources/i18n/pt-BR.json` |
+| M | `core/src/commonMain/resources/i18n/ru.json` |
+| M | `core/src/commonMain/resources/i18n/tr.json` |
+| M | `core/src/commonMain/resources/i18n/uk.json` |
+| M | `core/src/commonMain/resources/i18n/vi.json` |
+| M | `core/src/commonMain/resources/i18n/zh-CN.json` |
+| M | `core/src/commonMain/resources/i18n/zh-TW.json` |
+| M | `core/src/jvmSharedMain/kotlin/com/tmplayer/online/UrlConnectionTransport.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/cast/dlna/DlnaFixtures.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/data/FeedbackTest.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/data/GarbageInputTest.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/data/LogExportTest.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/data/PureBlackTest.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/data/StorageRelocationPlanTest.kt` |
+| M | `core/src/jvmTest/kotlin/com/tmplayer/i18n/TranslatorTest.kt` |
+| A | `core/src/jvmTest/kotlin/com/tmplayer/online/UrlConnectionCancellationTest.kt` |
+| A | `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxApiTest.kt` |
+| A | `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxCacheTest.kt` |
+| A | `core/src/jvmTest/kotlin/com/tmplayer/torbox/TorBoxScaleTest.kt` |
+| M | `core/src/pureMain/kotlin/com/tmplayer/data/Appearance.kt` |
+| A | `core/src/pureMain/kotlin/com/tmplayer/torbox/TorBoxApi.kt` |
+| A | `core/src/pureMain/kotlin/com/tmplayer/torbox/TorBoxMedia.kt` |
+| M | `desktop/packaging/icons/hicolor/128x128.png` |
+| M | `desktop/packaging/icons/hicolor/16x16.png` |
+| M | `desktop/packaging/icons/hicolor/24x24.png` |
+| M | `desktop/packaging/icons/hicolor/256x256.png` |
+| M | `desktop/packaging/icons/hicolor/32x32.png` |
+| M | `desktop/packaging/icons/hicolor/48x48.png` |
+| M | `desktop/packaging/icons/hicolor/512x512.png` |
+| M | `desktop/packaging/icons/hicolor/64x64.png` |
+| M | `desktop/packaging/icons/tmplayer.icns` |
+| M | `desktop/packaging/icons/tmplayer.ico` |
+| M | `desktop/packaging/icons/tmplayer.png` |
+| M | `desktop/packaging/icons/tmplayer.svg` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/DesktopFolderExport.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/DesktopPrefs.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/Main.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/SelfTest.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/StorageRelocation.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/cast/CastClient.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/DesktopLog.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/LinuxKeepAwake.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/LinuxNotifications.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/MacKeepAwake.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/Mpris.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/SingleInstance.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/StartupFailure.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/WindowMemory.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/os/WindowsNotifications.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/player/DevPlayerMain.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerExtras.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerOverlay.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/player/PlayerScreen.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Chats.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Home.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/LanguageAndFeedback.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/SettingsPages.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/Support.kt` |
+| M | `desktop/src/main/kotlin/com/tmplayer/desktop/ui/UpdatePopup.kt` |
+| M | `docs/ARCHITECTURE.md` |
+| M | `docs/BUILDING.md` |
+| A | `docs/VEYLORA-DEPENDENCIES.md` |
+| A | `docs/VEYLORA-FILES.md` |
+| A | `docs/VEYLORA-INTEGRATION.md` |
+| A | `docs/VEYLORA-PENDING.md` |
+| A | `docs/VEYLORA-PRIVACY.md` |
+| A | `docs/VEYLORA-PROVENANCE.md` |
+| A | `docs/VEYLORA-REPORT.md` |
+| A | `docs/VEYLORA-UPSTREAM-AUDIT.md` |
+| M | `fastlane/metadata/android/en-US/full_description.txt` |
+| M | `fastlane/metadata/android/en-US/title.txt` |
+| A | `scripts/build-veylora-assets.py` |
+| M | `ui/src/jvmTest/kotlin/com/tmplayer/ui/theme/AccentContrastTest.kt` |
+| M | `ui/src/jvmTest/kotlin/com/tmplayer/ui/theme/ThemeTokensTest.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/about/About.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/browse/HomeViewModel.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/components/AppLogo.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/components/LogoMark.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/components/StorageDonut.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/onboarding/Onboarding.kt` |
+| M | `ui/src/shared/kotlin/com/tmplayer/ui/theme/Palette.kt` |

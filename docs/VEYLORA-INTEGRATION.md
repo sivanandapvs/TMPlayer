@@ -25,6 +25,10 @@
 
 ## Platform behavior and edge cases
 
+Current scope update, 2026-11-09: the user requested the Android APK only. Further TV and
+desktop/EXE work is deferred. The platform analysis below records the original integration design.
+
+
 - Android phone and TV: account connection independent of Telegram, explicit refresh, bounded
   library pages, cloud playback through PlayerActivity. TV has overscan padding, initial focus,
   D-pad buttons and Back. Keep API 23 and all existing ABIs.
@@ -47,45 +51,30 @@
 1. Inspect repositories and fetch sources. Complete.
 2. Create branch from fetched origin/main. Complete.
 3. Preserve toolchain and dependencies; establish supported API contract. Complete.
-4. Implement API and Android Keystore credentials. Implemented; local tests in progress.
+4. Implement API and Android Keystore credentials. Implemented; local API and session validation only, real account verification pending.
 5. Implement bounded torrent, Usenet and web-download libraries and manual synchronization. Implemented.
 6. Extend the current player for cloud sources and resume. Implemented; live playback unverified.
 7. Connect navigation and settings. Implemented, including the app lock.
 8. Create original vector assets and update Android/shared branding while preserving attribution. Implemented; website and release infrastructure remain upstream.
-9. Compile and run existing and new tests; record actual results.
-10. Audit changes, document limitations and commit locally.
+9. Build the current Android debug APK and run focused local checks. Broad regression failures remain open.
+10. Record present work and deferred features in VEYLORA-PENDING.md, preserve evidence and commit locally.
 
 ## Progress / handoff
 
-- Repository inspection and branch isolation complete. Both source working trees were clean.
-- Installed environment: JDK 23, Android SDK 35. Documented build needs JDK 21 and SDK 37.
-- Initial wrapper check failed downloading Gradle 9.8.1 with a connection timeout. Build
-  prerequisites and network access must be resolved before an APK can be verified.
-- Live TorBox account and real phone/TV tests require credentials and connected devices.
-
-- JDK 21.0.13, SDK 37 and Build Tools 36 are now available locally; version pins were preserved.
-- A debug APK was generated during the second validation pass. A final rebuild is required to
-  include subsequent provider routes and credential-lock changes.
-- Original SVG logos, PNGs, density-specific launchers, adaptive/monochrome layers and the TV
-  banner are generated. XML/SVG syntax and launcher dimensions passed local checks.
-- First provider tests: 6 passed. Garbage-input tests: 8 passed in the second pass.
-- Full suites have failures, including missing Windows symbolic-link privilege, stale branding
-  assertions and Android storage fixtures. Do not call regression validation complete.
-- User chose local tests only. Live TorBox authentication, actual streaming, audio/subtitle
-  decoding, real-device focus and low-end TV CPU checks remain unverified.
-- Cloud downloads, in-player cloud quality switching, cloud
-  casting and automatic cloud episode advance are not implemented. Choose an available file
-  version before playback; use the TorBox dashboard for downloads until a safe queue is added.
-- New TorBox text currently falls back to English outside the English catalog. Translate and
-  review the 20 other catalogs before release.
-
-- Added a bounded encrypted first-page cache for each cloud provider, matched to a hashed account identity.
-  Cached content is labeled until refreshed. Cache parsing has garbage-input, account-isolation, round-trip and 20,000-file scale tests; final execution is pending.
-
-- Checkpoint 90f983df compiled an APK. Its final local run had 2,116 core tests (four Windows symlink-privilege failures), 212 UI tests (one identity-comparison assertion), and 13 targeted Android tests (one TV window-focus failure). The assertion and focus setup are corrected for the next run.
-
-- Cache checkpoint 62d19de7 passed the new cache and 20,000-file scale tests (one API call, 1,200,917 response bytes, 78 ms parsing on this host). UI theme tests now pass. TV entry-focus fixture still needed correction.
-- Review found the existing player hid all retry actions for non-Telegram IDs. Cloud failures now explicitly offer Try again, Back and Send logs; a real PlayerActivity missing-credential test was added.
-
-- Added cancellation to the existing HTTP transport and a 45-second TorBox request deadline. Local HTTP tests proved cancellation before response headers and connection reuse after successful responses. Added a nesting bound before JSON document construction.
-- Added a storage boundary for ViewModel tests, keeping Android Keystore as the production implementation. Connection reuses the account validation result instead of requesting it twice. Session tests cover rejected key replacement, retained library after refresh failure, local disconnect and cache display before network completion.
+- Implementation source checkpoint: `ba3125a8`. No package ID migration, merge or publication.
+- Android debug APK built successfully, signature verified. Final focused validation passed
+  23 core tests and 7 Android tests. Artifact: `build/veylora/Veylora-debug.apk`.
+- JDK 21.0.13, Gradle 9.8.1, SDK 37 and Build Tools 36 are available. Version pins are unchanged.
+- Android TorBox account, encrypted credentials/cache, bounded libraries and the existing player
+  handoff are implemented. Requests are cancellable and have a 45-second deadline; external
+  JSON is bounded by size, nesting depth and entry count.
+- Original SVG/PNG assets, Android launcher densities, adaptive/monochrome icons and splash
+  resources are present. Original legal notices and upstream contributions remain attributed.
+- The user chose local tests only and deferred TV and desktop/EXE work. Do not infer actual
+  account authentication, streaming or phone compatibility from unit tests.
+- Previous broad test runs had unresolved failures. Passing focused tests does not close those
+  failures or establish complete preservation of every original feature.
+- Current build evidence and exact validation counts: [VEYLORA-REPORT.md](VEYLORA-REPORT.md).
+- Remaining features, release blockers and deferred platforms: [VEYLORA-PENDING.md](VEYLORA-PENDING.md).
+- Resume from the pending checklist after reviewing the Android APK. Do not merge or publish
+  until the user authorizes it. No further platform work is required in the present pass.

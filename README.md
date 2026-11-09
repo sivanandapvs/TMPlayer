@@ -36,6 +36,8 @@ Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Design and development
 
+- [Android build and test report](docs/VEYLORA-REPORT.md)
+- [Pending work for later review](docs/VEYLORA-PENDING.md)
 - [Integration map, stages and handoff](docs/VEYLORA-INTEGRATION.md)
 - [Upstream provenance and identity decisions](docs/VEYLORA-PROVENANCE.md)
 - [Original SVG and PNG logo assets](art/veylora/)
