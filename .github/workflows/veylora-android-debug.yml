@@ -1,4 +1,4 @@
-name: Veylora Android Debug APK (Custom FFmpeg)
+name: Veylora Android and Android TV APK
 
 on:
   push:
@@ -117,6 +117,11 @@ jobs:
           BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK")"
           printf '%s\n' "$BADGING" | grep -F "package: name='com.tmplayer'"
           printf '%s\n' "$BADGING" | grep -F "application-label:'Veylora'"
+          MANIFEST="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test -x "$MANIFEST"
+          MANIFEST_TEXT="$("$MANIFEST" manifest print "$APK")"
+          printf '%s\n' "$MANIFEST_TEXT" | grep -F 'android.intent.category.LAUNCHER'
+          printf '%s\n' "$MANIFEST_TEXT" | grep -F 'android.intent.category.LEANBACK_LAUNCHER'
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
           NATIVE_COUNT="$(unzip -Z1 "$APK" | grep -Ec '^lib/[^/]+/[^/]+\.so          mkdir -p dist
           cp "$APK" dist/Veylora-debug.apk
@@ -125,6 +130,8 @@ jobs:
           {
             echo 'application_id=com.tmplayer'
             echo 'application_label=Veylora'
+            echo 'android_tv_launcher=verified'
+            echo 'android_phone_launcher=verified'
             echo 'ffmpeg_extension=custom tm2 AAR'
             echo "native_library_entries=$NATIVE_COUNT"
             echo "apk_bytes=$(stat -c '%s' dist/Veylora-debug.apk)"
@@ -139,11 +146,11 @@ jobs:
           ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain \
             :core:jvmTest :ui:jvmTest :app:testDebugUnitTest
 
-      - name: Upload Veylora APK with custom FFmpeg
+      - name: Upload Veylora Android and Android TV APK
         if: always() && steps.verify.outputs.verified == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: Veylora-debug-custom-ffmpeg-${{ github.sha }}
+          name: Veylora-Android-Phone-and-TV-${{ github.sha }}
           path: |
             dist/Veylora-debug.apk
             dist/SHA256SUMS.txt
