@@ -9,7 +9,7 @@ name: CI
 # anything else still runs everything, and workflow_dispatch runs it by hand whatever changed.
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/torbox-integration-rebrand"]
     paths-ignore:
       - "site/**"
       - "docs/**"
@@ -17,7 +17,7 @@ on:
       - "fastlane/**"
       - "desktop/packaging/aur/**"
   pull_request:
-    branches: [main]
+    branches: [main, "feature/torbox-integration-rebrand"]
     paths-ignore:
       - "site/**"
       - "docs/**"
