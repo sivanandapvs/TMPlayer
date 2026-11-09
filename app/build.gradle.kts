@@ -119,14 +119,17 @@ android {
         // Telegram API credentials. Developer-owned values stay in ignored local.properties;
         // CI may supply the same values as environment variables. A credential-free fork build
         // remains valid: TDLib reports missing credentials only when Telegram is used.
-        val telegramApiId = localProps.getProperty("TG_API_ID")
-            ?: System.getenv("TG_API_ID")
+        val telegramApiId = localProps.getProperty("TG_API_ID")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: System.getenv("TG_API_ID")?.trim()?.takeIf { it.isNotEmpty() }
             ?: "0"
-        val telegramApiHash = localProps.getProperty("TG_API_HASH")
-            ?: System.getenv("TG_API_HASH")
+        val telegramApiHash = localProps.getProperty("TG_API_HASH")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: System.getenv("TG_API_HASH")?.trim()?.takeIf { it.isNotEmpty() }
             ?: ""
-        buildConfigField("int", "TG_API_ID", telegramApiId.trim().ifEmpty { "0" })
-        buildConfigField("String", "TG_API_HASH", "\"${telegramApiHash.trim()}\"")
+        if (telegramApiId != "0" && telegramApiId.toIntOrNull()?.let { it > 0 } != true) {
+            throw GradleException("TG_API_ID must be a positive integer")
+        }
+        buildConfigField("int", "TG_API_ID", telegramApiId)
+        buildConfigField("String", "TG_API_HASH", "\"${telegramApiHash}\"")
 
         // Where an opted-in crash report goes. Empty is the normal case and the honest default:
         // with no DSN the reporting code never initialises, the Settings switch is not offered,
