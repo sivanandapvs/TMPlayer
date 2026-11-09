@@ -55,6 +55,7 @@ jobs:
             'platform-tools' \
             'ndk;25.2.9519653' \
             'cmake;3.22.1'
+          echo "$ANDROID_HOME/cmake/3.22.1/bin" >> "$GITHUB_PATH"
 
       - name: Install FFmpeg build dependencies
         run: |
