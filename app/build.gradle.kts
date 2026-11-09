@@ -116,9 +116,17 @@ android {
         versionCode = (findProperty("tmVersionCode") as String?)?.toInt() ?: releaseVersionCode(tmVersionName)
         versionName = tmVersionName
 
-        // Telegram API credentials. Bring your own via local.properties (see README)
-        buildConfigField("int", "TG_API_ID", localProps.getProperty("TG_API_ID") ?: "0")
-        buildConfigField("String", "TG_API_HASH", "\"${localProps.getProperty("TG_API_HASH") ?: ""}\"")
+        // Telegram API credentials. Developer-owned values stay in ignored local.properties;
+        // CI may supply the same values as environment variables. A credential-free fork build
+        // remains valid: TDLib reports missing credentials only when Telegram is used.
+        val telegramApiId = localProps.getProperty("TG_API_ID")
+            ?: System.getenv("TG_API_ID")
+            ?: "0"
+        val telegramApiHash = localProps.getProperty("TG_API_HASH")
+            ?: System.getenv("TG_API_HASH")
+            ?: ""
+        buildConfigField("int", "TG_API_ID", telegramApiId.trim().ifEmpty { "0" })
+        buildConfigField("String", "TG_API_HASH", "\"${telegramApiHash.trim()}\"")
 
         // Where an opted-in crash report goes. Empty is the normal case and the honest default:
         // with no DSN the reporting code never initialises, the Settings switch is not offered,
