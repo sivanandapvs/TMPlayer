@@ -118,12 +118,12 @@ installer was tested. No TV device validation is claimed.
 - [Provenance and licenses](VEYLORA-PROVENANCE.md)
 - [Pending work for later review](VEYLORA-PENDING.md)
 
-Changes are committed locally. No merge, push, tag, release or deployment was performed.
-If the user later chooses to back up this branch, run the following command themselves:
+Follow-up review on 2026-11-09 pushed three small corrective commits to the remote
+`feature/torbox-integration-rebrand` branch:
 
-```powershell
-git push -u origin feature/torbox-integration-rebrand
-```
+- `099f4c91`: allow Telegram credentials from local.properties or environment variables.
+- `9a993e92`: run CI on pushes to and pull requests targeting the feature branch.
+- `e179c997`: ignore blank credential values and validate TG_API_ID as a positive integer.
 
-This publishes the feature branch and sets its upstream. Check the remote is the intended
-fork and the branch name is correct. It does not merge into main or publish a release.
+The GitHub Actions run and local Gradle build were not verified after these follow-up commits.
+No merge into main, tag, release or deployment was performed.
