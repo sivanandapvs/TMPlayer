@@ -729,11 +729,11 @@ internal fun HomePane(
                             }
                             is HomeRow.TorBox -> {
                                 // TorBox rows use ShelfRows since they have ShelfEntry items
-                                ShelfRows(row.entries, watch, touch, isFirst, first, { "TorBox ${row.source.name}" }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) {}
+                                ShelfRows(row.entries, watch, touch, isFirst, first, { "TorBox ${row.source.name}" }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
                             }
                             is HomeRow.Unified -> {
                                 // Unified rows also use ShelfRows
-                                ShelfRows(row.entries, watch, touch, isFirst, first, { row.provider }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) {}
+                                ShelfRows(row.entries, watch, touch, isFirst, first, { row.provider }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
                             }
                             is HomeRow.Chat -> ShelfRows(row.entries, watch, touch, isFirst, first, { row.title }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
                             is HomeRow.Recent -> if (row.noneChosen) {
