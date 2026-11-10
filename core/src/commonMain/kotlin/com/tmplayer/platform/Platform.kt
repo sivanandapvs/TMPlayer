@@ -52,5 +52,5 @@ data class Credentials(
     val apiId: Int,
     val apiHash: String,
 ) {
-    val present: Boolean get() = apiId != 0
+    val present: Boolean get() = apiId > 0 && apiHash.isNotBlank()
 }

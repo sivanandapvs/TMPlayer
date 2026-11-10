@@ -1,5 +1,7 @@
 package com.tmplayer.data
 
+import com.tmplayer.torbox.TorBoxSource
+
 /**
  * One row on Home: what the viewer was part way through, the newest videos in a starred chat, or
  * the newest videos across the starred chats together.
@@ -75,6 +77,40 @@ sealed interface HomeRow {
      */
     data class NewEpisodes(val episodes: List<NewEpisode>) : HomeRow {
         override val key: String get() = "new-episodes"
+    }
+
+    /**
+     * Movies from TorBox (torrents, Usenet, web downloads).
+     * Shows the newest videos from the TorBox library.
+     *
+     * @param source The TorBox source type (Torrents, Usenet, Web).
+     * @param entries The video entries in this row.
+     * @param loaded Whether the row has finished loading.
+     * @param addedAt Timestamp when this row was populated.
+     */
+    data class TorBox(
+        val source: TorBoxSource,
+        val entries: List<ShelfEntry>,
+        val loaded: Boolean = true,
+        val addedAt: Long = System.currentTimeMillis(),
+    ) : HomeRow {
+        override val key: String get() = "torbox-${source.name}"
+        override val total: Int get() = entries.size
+        override val hasMore: Boolean get() = false
+    }
+
+    /**
+     * A unified row that combines multiple providers including TorBox.
+     * Used when showing content from both Telegram and TorBox together.
+     */
+    data class Unified(
+        val provider: String,
+        val entries: List<ShelfEntry>,
+        val loaded: Boolean = true,
+    ) : HomeRow {
+        override val key: String get() = "unified-$provider"
+        override val total: Int get() = entries.size
+        override val hasMore: Boolean get() = false
     }
 
     /**
@@ -529,8 +565,9 @@ object HomeRows {
             is HomeRow.WatchLater -> row.copy(records = row.records.filter { pictured(it.chatId, it.messageId) })
             is HomeRow.NewEpisodes -> row.copy(episodes = row.episodes.filter { HomeFeatured.hasArt(it.item) })
             is HomeRow.Chat -> if (!row.loaded) return row else row.copy(entries = row.entries.filter(HomeFeatured::hasArt))
-            // The line saying no chosen chat is there stands as it is.
             is HomeRow.Recent -> if (!row.loaded || row.noneChosen) return row else row.copy(entries = row.entries.filter(HomeFeatured::hasArt))
+            is HomeRow.TorBox -> row // TorBox rows draw from their own items
+            is HomeRow.Unified -> row // Unified rows draw from their own entries
         }
         val empty = when (kept) {
             is HomeRow.Continue -> kept.records.isEmpty()
@@ -538,6 +575,8 @@ object HomeRows {
             is HomeRow.NewEpisodes -> kept.episodes.isEmpty()
             is HomeRow.Chat -> kept.entries.isEmpty()
             is HomeRow.Recent -> kept.entries.isEmpty()
+            is HomeRow.TorBox -> kept.entries.isEmpty()
+            is HomeRow.Unified -> kept.entries.isEmpty()
         }
         return if (empty) null else kept
     }

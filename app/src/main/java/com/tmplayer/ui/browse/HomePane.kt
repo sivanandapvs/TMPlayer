@@ -615,6 +615,8 @@ internal fun HomePane(
                         is HomeRow.Chat -> { { onOpenChat(row.chatId) } }
                         is HomeRow.Recent -> { { seeAllKey = row.key } }
                         is HomeRow.NewEpisodes -> null
+                        is HomeRow.TorBox -> null
+                        is HomeRow.Unified -> null
                     }?.takeIf { row.hasMore }
                     // On a television "See all" is the row's last tile, where Right past the last
                     // video lands, as a television's rows end (user, 2026-10-28); a phone keeps it
@@ -724,6 +726,14 @@ internal fun HomePane(
                                             .then(if (isFirst && episode === row.episodes.first()) Modifier.focusRequester(first) else Modifier),
                                     )
                                 }
+                            }
+                            is HomeRow.TorBox -> {
+                                // TorBox rows use ShelfRows since they have ShelfEntry items
+                                ShelfRows(row.entries, watch, touch, isFirst, first, { "TorBox ${row.source.name}" }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) {}
+                            }
+                            is HomeRow.Unified -> {
+                                // Unified rows also use ShelfRows
+                                ShelfRows(row.entries, watch, touch, isFirst, first, { row.provider }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) {}
                             }
                             is HomeRow.Chat -> ShelfRows(row.entries, watch, touch, isFirst, first, { row.title }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
                             is HomeRow.Recent -> if (row.noneChosen) {

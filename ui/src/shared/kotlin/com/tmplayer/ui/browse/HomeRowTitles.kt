@@ -13,6 +13,8 @@ fun homeRowTitle(row: HomeRow, s: Messages): String = when (row) {
     is HomeRow.NewEpisodes -> s.homeRowNewEpisodes
     is HomeRow.Chat -> row.title
     is HomeRow.Recent -> if (row.starredOnly) s.homeRowRecent else s.homeRowRecentAll
+    is HomeRow.TorBox -> "TorBox ${row.source.name}"
+    is HomeRow.Unified -> row.provider
 }
 
 /** Whether [row] has its tiles yet; a row that has not is drawn as a placeholder strip of the same height. */
@@ -21,4 +23,6 @@ val HomeRow.isLoaded: Boolean
         is HomeRow.Continue, is HomeRow.WatchLater, is HomeRow.NewEpisodes -> true
         is HomeRow.Chat -> loaded
         is HomeRow.Recent -> loaded
+        is HomeRow.TorBox -> loaded
+        is HomeRow.Unified -> loaded
     }

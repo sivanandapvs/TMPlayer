@@ -384,6 +384,10 @@ class WatchCacheRules(
          * old name, now a link. Comparing the strings would make every file the app owns look like
          * a video nobody owns: a download counted as cache, and a download deleted.
          */
-        private fun canonical(path: String): String = runCatching { File(path).canonicalPath }.getOrDefault(path)
+        private fun canonical(path: String): String = runCatching {
+            File(path).toPath().toRealPath().toString()
+        }.getOrElse {
+            runCatching { File(path).canonicalPath }.getOrDefault(path)
+        }
     }
 }

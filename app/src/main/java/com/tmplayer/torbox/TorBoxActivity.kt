@@ -187,7 +187,7 @@ internal fun TorBoxScreen(onBack: () -> Unit, model: TorBoxViewModel = viewModel
                     val media = remember(file) { file.media() }
                     OutlinedCard(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(media.fileTileTitle ?: media.title, style = MaterialTheme.typography.titleMedium)
+                            Text(media.title, style = MaterialTheme.typography.titleMedium)
                             Text(media.fileName, style = MaterialTheme.typography.bodyMedium)
                             val tags = listOfNotNull(media.parsedName.episodeCode) + media.qualityTags
                             if (tags.isNotEmpty()) Text(tags.joinToString(" | "))

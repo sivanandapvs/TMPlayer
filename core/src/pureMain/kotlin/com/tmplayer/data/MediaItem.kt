@@ -89,6 +89,12 @@ data class MediaItem(
      */
     val pieces: List<MediaItem> = emptyList(),
     /**
+     * The provider-specific identity for this item. For Telegram videos, this is derived from
+     * chatId and messageId. For TorBox videos, this would be a TorBox identity. Default is null
+     * which means auto-derived from chatId/messageId for backward compatibility.
+     */
+    val identity: MediaIdentity? = null,
+    /**
      * Telegram's own lighter copies of this upload, made on its servers for a big video
      * (`MessageVideo.alternativeVideos`), best first, each lighter than the upload. Empty for a file
      * sent as a document and for a video Telegram made none of. See [TelegramQualities].
@@ -157,7 +163,7 @@ data class MediaItem(
         looseHintRead = from.looseHintRead
         markersRead = from.markersRead
         captionLinesRead = from.captionLinesRead
-        if (chatId == from.chatId && messageId == from.messageId) progressKeyRead = from.progressKeyRead
+        if (identity?.key == from.identity?.key) progressKeyRead = from.progressKeyRead
         // The keys also read whether it is an extra, and whether it stands for a cut video's pieces.
         if (extra == from.extra && pieces.isEmpty() == from.pieces.isEmpty()) {
             filmKeyRead = from.filmKeyRead
@@ -256,7 +262,8 @@ data class MediaItem(
      * Kept rather than built on every read: Home's rows, the shelf and the search key, compare and
      * look up videos by it hundreds of times a build.
      */
-    val id: String = "$chatId:$messageId"
+    val id: String
+        get() = identity?.key ?: "$chatId:$messageId"
 
     /**
      * [PromoCovers.keyOf] of [miniThumbnail], worked out once: 0 for a video with no preview.
@@ -272,7 +279,7 @@ data class MediaItem(
 
     /** [ProgressKeys.of] for this video, the key its place and its Watched mark are stored under. */
     internal val progressKey: String
-        get() = progressKeyRead ?: ProgressKeys.of(chatId, messageId).also { progressKeyRead = it }
+        get() = progressKeyRead ?: (identity?.key ?: ProgressKeys.of(chatId, messageId)).also { progressKeyRead = it }
 
     /**
      * Whether the file's name is one a camera or Telegram made up ([MediaText.isGenericName]),

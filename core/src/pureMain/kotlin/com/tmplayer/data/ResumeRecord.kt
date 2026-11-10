@@ -36,6 +36,8 @@ data class ResumeRecord(
      */
     val fileName: String? = null,
     val caption: String? = null,
+    /** Provider-specific identity for non-Telegram media (e.g., TorBox). */
+    val identity: MediaIdentity? = null,
 ) {
     val fraction: Float
         get() = if (durationMs <= 0) 0f else (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
@@ -65,6 +67,7 @@ data class ResumeRecord(
         date = 0,
         fileName = fileName ?: title,
         caption = caption.orEmpty(),
+        identity = identity,
     )
 
     companion object {
@@ -138,10 +141,20 @@ data class ResumeRecord(
             durationMs: Long,
         ): ResumeRecord? {
             if (encoded.isNullOrEmpty()) return null
-            val ids = key.split('_')
-            if (ids.size != 2) return null
-            val chatId = ids[0].toLongOrNull() ?: return null
-            val messageId = ids[1].toLongOrNull() ?: return null
+            // Handle TorBox identity keys first
+            val identity = MediaIdentity.parse(key)
+            val chatId = identity?.let { if (it is MediaIdentity.Telegram) it.chatId else 0L }
+                ?: run {
+                    val ids = key.split('_')
+                    if (ids.size != 2) return null
+                    ids[0].toLongOrNull() ?: return null
+                }
+            val messageId = identity?.let { if (it is MediaIdentity.Telegram) it.messageId else 0L }
+                ?: run {
+                    val ids = key.split('_')
+                    if (ids.size != 2) return null
+                    ids[1].toLongOrNull() ?: return null
+                }
 
             val parts = encoded.split(SEP)
             if (parts.size != FIELDS && parts.size != FIELDS_WITH_PATH && parts.size != FIELDS_WITH_STATE &&
@@ -169,6 +182,7 @@ data class ResumeRecord(
                 state = parts.getOrNull(7)?.takeIf { it.isNotBlank() }?.let(ResumeState::decode),
                 fileName = parts.getOrNull(8)?.takeIf { it.isNotBlank() },
                 caption = parts.getOrNull(9)?.takeIf { it.isNotBlank() },
+                identity = identity,
             )
         }
     }

@@ -61,6 +61,31 @@ desktop/EXE work is deferred. The platform analysis below records the original i
 
 ## Progress / handoff
 
+- 2026-11-10 credential phase: root `local.properties` was missing and was created locally
+  with the actual SDK path and placeholder Telegram values. Git ignores it. The user has since
+  supplied locally valid-format values. A safe comparison confirmed both reached the generated
+  BuildConfig without printing them. Login on a device remains unverified. The build rejects
+  incomplete or malformed credential pairs.
+- The requested unified Home remains open. `TorBoxFile.media()` previously invented zero Telegram
+  IDs. It now returns `TorBoxMedia`, carrying a provider-specific
+  `MediaIdentity.TorBox` and using the shared filename parser. Home, details, progress, and
+  metadata caches still key records through Telegram IDs. Wire those paths to the new identity
+  before placing TorBox cards in Home.
+  Keep the existing TorBox Activity for account management until the shared route is complete.
+- Phone and TV behavior for the proposed catalogue: phone touch and rows; TV D-pad focus and
+  restoration. Handle empty and partially failed cloud pages, disconnected accounts, unavailable
+  files, duplicate titles across providers, multiple qualities and episodes, and independent
+  provider refresh. Desktop and web are outside this Android pass.
+- Baseline test audit: `:core:jvmTest` reported 2,124 tests, four failures and 18 skipped. The
+  four failures are in `CacheDirRenameTest` and `WatchCacheRulesTest`: Windows denies symbolic
+  link creation without privilege, while the rename code intentionally keeps the old path.
+  `:app:testDebugUnitTest` also reported failures in downloads and two browse focus tests before
+  the run stopped producing progress. The `LocalDownloadsTest` XML shows repeated DataStore
+  `Unable to rename ...preferences_pb.tmp` errors on Windows, then the missing record assertion.
+  Focused `TorBoxMediaIdentityTest` passes, as does `:app:compileDebugKotlin`.
+- The final APK must wait for full Home, details, history, cache and TV integration and passing
+  test suites. The APK from the prior credential-only pass predates this source change.
+
 - Implementation source checkpoint: `ba3125a8`. No package ID migration, merge or publication.
 - Android debug APK built successfully, signature verified. Final focused validation passed
   23 core tests and 7 Android tests. Artifact: `build/veylora/Veylora-debug.apk`.

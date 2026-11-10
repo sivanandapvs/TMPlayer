@@ -26,7 +26,11 @@ in its original modules. The website's upstream install instructions are not Vey
 ## Build and validate
 
 JDK 21, Android SDK 37 and Build Tools 36 are required. See [BUILDING](docs/BUILDING.md).
-Telegram credentials are optional for compilation; never commit API keys.
+Telegram credentials are optional for compilation. To enable Telegram sign in locally, edit the
+ignored repository-root `local.properties`: set `TG_API_ID` and `TG_API_HASH` to your own values
+from [my.telegram.org](https://my.telegram.org) under API development tools, then rebuild. Keep
+`sdk.dir` and any other local settings. A build with `TG_API_ID=0` and an empty hash can compile,
+but Telegram sign in will report missing credentials. Never commit API keys.
 
 ```powershell
 .\gradlew.bat :core:jvmTest :ui:jvmTest :app:testDebugUnitTest :app:assembleDebug --max-workers=2

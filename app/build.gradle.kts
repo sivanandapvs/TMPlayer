@@ -128,6 +128,12 @@ android {
         if (telegramApiId != "0" && telegramApiId.toIntOrNull()?.let { it > 0 } != true) {
             throw GradleException("TG_API_ID must be a positive integer")
         }
+        if ((telegramApiId == "0") != telegramApiHash.isEmpty()) {
+            throw GradleException("Set both TG_API_ID and TG_API_HASH, or leave both unset")
+        }
+        if (telegramApiHash.isNotEmpty() && !telegramApiHash.matches(Regex("[0-9a-fA-F]{32}"))) {
+            throw GradleException("TG_API_HASH must be a 32-character hexadecimal value")
+        }
         buildConfigField("int", "TG_API_ID", telegramApiId)
         buildConfigField("String", "TG_API_HASH", "\"${telegramApiHash}\"")
 

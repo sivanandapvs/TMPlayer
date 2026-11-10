@@ -187,6 +187,7 @@ object HomeCache {
         .put("extra", extra?.name ?: "")
         .put("album", albumId)
         .put("start", startSec)
+        .put("id", identity?.key ?: "")
         .apply {
             if (versions.isNotEmpty()) put("versions", versions.toJson())
             if (parts.isNotEmpty()) put("parts", parts.toJson())
@@ -197,6 +198,8 @@ object HomeCache {
 
     private fun item(json: JSONObject): MediaItem? = runCatching {
         val locality = MediaItem.Locality.entries.firstOrNull { it.name == json.optString("loc") } ?: MediaItem.Locality.Remote
+        val identityKey = json.optString("id")
+        val identity = if (identityKey.isNotBlank()) MediaIdentity.parse(identityKey) else null
         MediaItem(
             chatId = json.getLong("c"),
             messageId = json.getLong("m"),
@@ -222,6 +225,7 @@ object HomeCache {
             albumId = json.optLong("album"),
             pieces = items(json.optJSONArray("pieces")),
             startSec = json.optInt("start"),
+            identity = identity,
         )
     }.getOrNull()
 
