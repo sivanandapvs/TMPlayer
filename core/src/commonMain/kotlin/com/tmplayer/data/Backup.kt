@@ -351,6 +351,7 @@ object Backups {
         put("durationMs", r.durationMs)
         put("updatedAt", r.updatedAt)
         r.state?.let { put("state", it.encode()) }
+        r.identity?.let { put("identity", it.key) }
     }
 
     private fun watchLaterJson(w: WatchLaterRecord) = JSONObject().apply {
@@ -460,6 +461,7 @@ object Backups {
     private fun resumeOf(json: JSONObject): ResumeRecord? {
         val chatId = json.longOrNull("chat") ?: return null
         val messageId = json.longOrNull("message") ?: return null
+        val identityKey = json.optString("identity").takeIf { it.isNotBlank() }
         val line = ResumeRecord.encode(
             fileId = json.longOrNull("file")?.toInt() ?: return null,
             title = json.optString("title"),
@@ -470,7 +472,7 @@ object Backups {
             state = json.optString("state").takeIf { it.isNotEmpty() }?.let(ResumeState::decode),
         )
         return ResumeRecord.decode(
-            key = SettingsStore.progressKey(chatId, messageId),
+            key = identityKey ?: SettingsStore.progressKey(chatId, messageId),
             encoded = line,
             positionMs = json.longOrNull("positionMs") ?: return null,
             durationMs = json.longOrNull("durationMs") ?: 0L,

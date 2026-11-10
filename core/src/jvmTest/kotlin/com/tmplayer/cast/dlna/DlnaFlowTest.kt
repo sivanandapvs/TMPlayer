@@ -18,6 +18,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The whole flow on loopback against [FakeRenderer]: discover, describe, load, play, seek, poll,
@@ -77,8 +78,14 @@ class DlnaFlowTest {
         durationMs = 120_000, sizeBytes = bytes.size.toLong(), subtitleSrt = subtitle,
     )
 
-    private fun newCast(device: DlnaDevice, idleLimitMs: Long = 30 * 60_000L): DlnaCast =
-        DlnaCast(device, loopback, clock = { now }, idleLimitMs = idleLimitMs, autoPoll = false, onClosed = { closes += it }).also { cast = it }
+    private fun newCast(
+        device: DlnaDevice,
+        idleLimitMs: Long = 30 * 60_000L,
+        soap: SoapTransport = SoapClient(),
+    ): DlnaCast = DlnaCast(
+        device, loopback, soap = soap, clock = { now }, idleLimitMs = idleLimitMs,
+        autoPoll = false, onClosed = { closes += it },
+    ).also { cast = it }
 
     /** Time passes on the TV and on the phone's clock together. */
     private fun pass(ms: Long) {
@@ -331,11 +338,23 @@ class DlnaFlowTest {
     }
 
     @Test
-    fun threeSilentPollsLoseTheRendererAndClosePort() {
-        val c = newCast(discover())
+    fun threePollsWithoutPositionAnswersLoseTheRendererAndClosePort() {
+        val positionUnavailable = AtomicBoolean(false)
+        val realSoap = SoapClient()
+        val transport = SoapTransport { service, action, args ->
+            if (positionUnavailable.get() && action == "GetPositionInfo") {
+                SoapResult.Failed("simulated missing position response")
+            } else {
+                realSoap.call(service, action, args)
+            }
+        }
+        val c = newCast(discover(), soap = transport)
         c.open(video(), 0) { }
         assertTrue(c.server.running)
-        fake.powerOff()
+
+        // The TV still answers GetTransportInfo, as happened during the CI failure, but no
+        // longer answers the other half of a useful playback poll.
+        positionUnavailable.set(true)
         c.renderer.pollOnce(); c.renderer.pollOnce()
         assertTrue("two misses are not a loss", c.isOpen)
         c.renderer.pollOnce()

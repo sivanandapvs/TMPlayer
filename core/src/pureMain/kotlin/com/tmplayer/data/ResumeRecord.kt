@@ -141,15 +141,18 @@ data class ResumeRecord(
             durationMs: Long,
         ): ResumeRecord? {
             if (encoded.isNullOrEmpty()) return null
-            // Handle TorBox identity keys first
-            val identity = MediaIdentity.parse(key)
-            val chatId = identity?.let { if (it is MediaIdentity.Telegram) it.chatId else 0L }
+            // Old Telegram records use chat_message keys and have no explicit provider identity.
+            // Keep those identities implicit for data-class round trips; explicit keys (including
+            // TorBox) retain their provider identity.
+            val parsedIdentity = MediaIdentity.parse(key)
+            val identity = parsedIdentity?.takeIf { it is MediaIdentity.TorBox || !key.contains('_') }
+            val chatId = parsedIdentity?.let { if (it is MediaIdentity.Telegram) it.chatId else 0L }
                 ?: run {
                     val ids = key.split('_')
                     if (ids.size != 2) return null
                     ids[0].toLongOrNull() ?: return null
                 }
-            val messageId = identity?.let { if (it is MediaIdentity.Telegram) it.messageId else 0L }
+            val messageId = parsedIdentity?.let { if (it is MediaIdentity.Telegram) it.messageId else 0L }
                 ?: run {
                     val ids = key.split('_')
                     if (ids.size != 2) return null

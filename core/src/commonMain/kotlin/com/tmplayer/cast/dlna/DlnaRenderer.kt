@@ -243,7 +243,10 @@ class DlnaRenderer(
         val transport = avCall("GetTransportInfo")
         val position = avCall("GetPositionInfo")
         val ok = transport as? SoapResult.Ok
-        if (ok == null) {
+        if (ok == null || position is SoapResult.Failed) {
+            // Both answers make up one useful poll. Some renderers keep answering transport
+            // state while their position endpoint has stopped responding; count that as a miss
+            // too, but do not count a SOAP Fault (the renderer did answer it).
             failed()
             return null
         }

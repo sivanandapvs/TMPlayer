@@ -333,7 +333,9 @@ object HomeRows {
                 val allEntries = (telegramEntries + cloudEntries).sortedByDescending(::addedAt)
                 val entries = allEntries.take(LIMIT)
                 val extraEntries = allEntries.drop(LIMIT)
-                markSeen(entries, seen)
+                // Recently added is a preview of these videos, not a consuming row.
+                // Keep the shared seen set for Continue watching only, so each starred chat
+                // still gets its own shelf below the merged timeline.
                 if (entries.isNotEmpty()) {
                     add(HomeRow.Recent(entries, loaded = recent != null || torBoxItems.isNotEmpty(),
                         starredOnly = starredOnly && torBoxItems.isEmpty(), chatIds = homeOrder, asRow = asRow,

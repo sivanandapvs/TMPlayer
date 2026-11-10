@@ -167,6 +167,33 @@ class BackupTest {
     }
 
     @Test
+    fun `TorBox resume identity survives a backup round trip`() {
+        val original = backup(
+            resume = listOf(
+                ResumeRecord(
+                    chatId = 0L,
+                    messageId = 0L,
+                    fileId = 11,
+                    title = "Cloud film",
+                    chatTitle = "TorBox",
+                    sizeBytes = 5_000,
+                    durationSec = 6_000,
+                    positionMs = 600_000,
+                    durationMs = 3_600_000,
+                    updatedAt = 500,
+                    identity = MediaIdentity.TorBox(
+                        com.tmplayer.torbox.TorBoxSource.Torrents,
+                        transferId = 900L,
+                        fileId = 77L,
+                    ),
+                ),
+            ),
+        )
+        val decoded = Backups.decode(Backups.encode(original)) as BackupRead.Ok
+        assertEquals(original.resume, decoded.backup.resume)
+    }
+
+    @Test
     fun `a file from a newer TMPlayer is refused politely`() {
         val newer = Backups.encode(backup()).replace("\"version\": 1", "\"version\": 2")
         val read = Backups.decode(newer)
