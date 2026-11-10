@@ -239,6 +239,8 @@ class HomeViewModel(
     private val connected: Flow<Boolean> = Td.connected,
     /** Milliseconds that only go forward, for the budgets' pauses; the tests pass their virtual clock. */
     private val clock: () -> Long = { System.nanoTime() / 1_000_000 },
+    /** Android's optional cloud provider feed; empty in tests and non-Android hosts. */
+    val torBoxItems: StateFlow<List<MediaItem>> = MutableStateFlow(emptyList()),
 ) : ViewModel(com.tmplayer.platform.JobFailures.viewModelScope("Home")) {
 
     /**
@@ -1013,6 +1015,7 @@ fun rememberHomeRows(
     val added by com.tmplayer.data.AddedChats.ids.collectAsState()
     val loadedAll by model.loaded.collectAsState()
     val recentAll by model.recent.collectAsState()
+    val torBoxItems by model.torBoxItems.collectAsState()
     // A chat removed from its menu ("Remove from Veylora") takes what was read from it off Home at
     // once, without waiting for the next refresh. Continue watching and Watch later keep its
     // cards: they are the viewer's own record ([com.tmplayer.data.AddedChats]).
@@ -1047,7 +1050,7 @@ fun rememberHomeRows(
     // filled Home reads a dozen chats, each answer changed the inputs, and every build reads
     // hundreds of names. Built on the main thread, that held a TV stick past the ANR limit
     // (1.28.0, Bell Streamer). The last rows stay on screen meanwhile.
-    val rows by produceState(model.lastRows, continueWatching, watchLater, chats, favourites, loaded, recent, partial, fresh, corrections, recentMinStarred, autoFill, stalled, layout, added) {
+    val rows by produceState(model.lastRows, continueWatching, watchLater, chats, favourites, loaded, recent, torBoxItems, partial, fresh, corrections, recentMinStarred, autoFill, stalled, layout, added) {
         // The setting not read yet: nothing is picked, built or fetched (see [layout]).
         val layout = layout ?: return@produceState
         // Home's chats picked for itself only feed Recently added and the carousel.
@@ -1093,7 +1096,7 @@ fun rememberHomeRows(
         // as placeholders for as long as Telegram takes (user, 2026-10-26).
         val loaded = if (stalled) loaded + home.filter { it.id !in loaded }.associate { it.id to emptyList() } else loaded
         val recent = if (stalled) recent ?: emptyList() else recent
-        val inputs = listOf(continueWatching, watchLater, home, favourites, loaded, recent, partial, fresh, corrections, recentMinStarred, autoFill, chatsPending, layout, recentFrom, noneChosen)
+        val inputs = listOf(continueWatching, watchLater, home, favourites, loaded, recent, torBoxItems, partial, fresh, corrections, recentMinStarred, autoFill, chatsPending, layout, recentFrom, noneChosen)
         if (value.isNotEmpty() && homeMemo.same(homeMemo.built, inputs)) return@produceState
         if (value.isNotEmpty()) delay(HomeViewModel.ROWS_SETTLE_MS)
         val built = withContext(homeBuild) {
@@ -1101,6 +1104,7 @@ fun rememberHomeRows(
                 continueWatching, home, loaded, recent, partial = partial, watchLater = watchLater, fresh = fresh,
                 recentMinStarred = recentMinStarred, starred = favourites, autoFill = autoFill,
                 chatsPending = chatsPending, layout = layout, recentFrom = recentFrom, noneChosen = noneChosen,
+                torBoxItems = torBoxItems,
             )
         }
         homeMemo.built = inputs
