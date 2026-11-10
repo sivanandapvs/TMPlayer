@@ -111,6 +111,9 @@ jobs:
 
       # The required flag prevents Gradle from silently selecting the reduced Maven fallback.
       - name: Build Veylora debug APK
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
         run: ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain :app:assembleDebug -PtmRequireMedia3ext=true
 
       - name: Verify APK identity, launchers and signature
@@ -149,6 +152,9 @@ jobs:
       # Tests run after packaging so a test failure does not discard a verified APK.
       - name: Run shared and Android unit tests
         if: always() && steps.verify.outputs.verified == 'true'
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
         run: |
           ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain \
             :core:jvmTest :ui:jvmTest :app:testDebugUnitTest
