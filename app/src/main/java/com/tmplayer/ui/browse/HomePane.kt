@@ -754,7 +754,7 @@ internal fun HomePane(
                                     runCatching { tilesFocus.requestFocus() }
                                     returnTo = null
                                 }
-                                ShelfRows(row.entries, watch, touch, isFirst, first, chatTitle, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
+                                ShelfRows(row.entries, watch, touch, isFirst, first, { id -> if (id == 0L) "TorBox" else chatTitle(id) }, onPlay, onHoldMedia, start, end, rowTiles, seeAllEnd) { opened.open(it) }
                             }
                         }
                     }
