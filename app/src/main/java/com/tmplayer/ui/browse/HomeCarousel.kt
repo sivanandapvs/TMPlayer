@@ -435,7 +435,8 @@ internal fun featuredFacts(pick: FeaturedPick, title: String, chat: String, s: c
         item.versions.size > 1 -> s.detailVersions(item.versions.size)
         else -> null
     }
-    return listOfNotNull(year, which, item.qualityTags.firstOrNull(), chat.ifBlank { null }).joinToString(SEPARATOR)
+    val source = if (item.identity is com.tmplayer.data.MediaIdentity.TorBox) "TorBox" else chat.ifBlank { null }
+    return listOfNotNull(year, which, item.qualityTags.firstOrNull(), source).joinToString(SEPARATOR)
 }
 
 /** The carousel's frame while the starred chats are still being asked: the same size, shimmering. */
