@@ -64,7 +64,9 @@ sealed interface ShelfEntry {
     val key: String
 
     data class Show(val series: Series) : ShelfEntry {
-        override val key: String get() = "series-${series.key}"
+        // Same-title shows from Telegram and TorBox are separate entries on the unified shelf.
+        override val key: String get() =
+            "series-${series.key}" + if (series.cover.identity is MediaIdentity.TorBox) "-torbox" else ""
     }
 
     data class File(val item: MediaItem) : ShelfEntry {

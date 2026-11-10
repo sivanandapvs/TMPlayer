@@ -2,6 +2,7 @@ package com.tmplayer.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -125,6 +126,64 @@ class HomeRowsTest {
         )
         val recent = rows.filterIsInstance<HomeRow.Recent>().single()
         assertEquals(cloud.id, (recent.entries.single() as ShelfEntry.File).item.id)
+    }
+
+    @Test
+    fun `TorBox overflow is available from Recently added See all`() {
+        val cloud = (0 until HomeRows.LIMIT + 3).map { index ->
+            video(0L, fileName = "Unique Movie ${plainName(index.toLong())}", date = index)
+                .copy(
+                    chatId = 0L,
+                    messageId = 0L,
+                    fileId = 0,
+                    identity = MediaIdentity.TorBox(
+                        com.tmplayer.torbox.TorBoxSource.Torrents,
+                        transferId = 1_000L + index,
+                        fileId = 2_000L + index,
+                    ),
+                )
+        }
+        val row = HomeRows.build(
+            continueWatching = emptyList(),
+            favourites = emptyList(),
+            loaded = emptyMap(),
+            recent = emptyList(),
+            torBoxItems = cloud,
+        ).filterIsInstance<HomeRow.Recent>().single()
+
+        assertEquals(HomeRows.LIMIT, row.entries.size)
+        assertEquals(3, row.extraEntries.size)
+        assertTrue(row.hasMore)
+        val all = HomeRows.seeAll(row, emptyList()).orEmpty()
+        assertEquals(cloud.size, all.sumOf { entry ->
+            when (entry) {
+                is ShelfEntry.File -> 1
+                is ShelfEntry.Show -> entry.series.episodeCount
+            }
+        })
+    }
+
+    @Test
+    fun `same show from Telegram and TorBox has separate shelf keys`() {
+        val telegramItems = listOf(
+            video(77L, fileName = "Shared.Show.S01E01.mkv", date = 100),
+            video(77L, fileName = "Shared.Show.S01E02.mkv", date = 90),
+        )
+        val cloudItems = telegramItems.mapIndexed { index, item ->
+            item.copy(
+                chatId = 0L,
+                messageId = 0L,
+                fileId = 0,
+                identity = MediaIdentity.TorBox(
+                    com.tmplayer.torbox.TorBoxSource.Torrents,
+                    transferId = 7_770L + index,
+                    fileId = 8_880L + index,
+                ),
+            )
+        }
+        val telegramShow = SeriesShelf.arrange(telegramItems).filterIsInstance<ShelfEntry.Show>().single()
+        val cloudShow = SeriesShelf.arrange(cloudItems).filterIsInstance<ShelfEntry.Show>().single()
+        assertNotEquals(telegramShow.key, cloudShow.key)
     }
 
     @Test
