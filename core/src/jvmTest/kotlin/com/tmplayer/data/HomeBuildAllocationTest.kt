@@ -101,6 +101,8 @@ class HomeBuildAllocationTest {
         is HomeRow.Continue -> row.records.map { "${it.chatId}:${it.messageId}" }
         is HomeRow.WatchLater -> row.records.map { it.key }
         is HomeRow.NewEpisodes -> row.episodes.map { it.item.id }
+        is HomeRow.TorBox -> row.entries.map { it.key }
+        is HomeRow.Unified -> row.entries.map { it.key }
         is HomeRow.Chat -> row.entries.map { it.key }
         is HomeRow.Recent -> row.entries.map { it.key }
     }
