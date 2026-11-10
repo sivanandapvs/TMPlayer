@@ -46,6 +46,8 @@ class HomeRowsTest {
         is HomeRow.WatchLater -> row.records.map { it.messageId }
         is HomeRow.Chat -> row.entries.flatMap(::idsOf)
         is HomeRow.NewEpisodes -> row.episodes.map { it.item.messageId }
+        is HomeRow.TorBox -> row.entries.flatMap(::idsOf)
+        is HomeRow.Unified -> row.entries.flatMap(::idsOf)
         is HomeRow.Recent -> row.entries.flatMap(::idsOf)
     }
 
@@ -115,6 +117,8 @@ class HomeRowsTest {
                 is HomeRow.WatchLater -> row.records.size
                 is HomeRow.Chat -> row.entries.size
                 is HomeRow.NewEpisodes -> row.episodes.size
+                is HomeRow.TorBox -> row.entries.size
+                is HomeRow.Unified -> row.entries.size
                 is HomeRow.Recent -> row.entries.size
             }
             assertEquals(row.key, HomeRows.LIMIT, size)
