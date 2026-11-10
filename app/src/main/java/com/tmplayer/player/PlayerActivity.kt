@@ -9320,6 +9320,25 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                 .putExtra(EXTRA_SIZE, file.size)
                 .putExtra(EXTRA_CAN_BE_SAVED, false)
 
+        /** Home cards carry the provider identity on MediaItem, not the original wire record. */
+        fun cloudIntent(context: Context, item: MediaItem): Intent {
+            val identity = item.identity as? com.tmplayer.data.MediaIdentity.TorBox
+                ?: throw IllegalArgumentException("Media item is not a TorBox file")
+            val name = item.fileName.ifBlank { item.title }
+            val file = com.tmplayer.torbox.TorBoxFile(
+                torrentId = identity.transferId,
+                fileId = identity.fileId,
+                name = name,
+                size = item.sizeBytes,
+                added = "",
+                ready = true,
+                source = identity.source,
+            )
+            return cloudIntent(context, file)
+                .putExtra(EXTRA_TITLE, item.title)
+                .putExtra(EXTRA_FILE_NAME, name)
+        }
+
         fun intent(context: Context, picked: MediaItem, chatTitle: String = ""): Intent =
             Intent(context, PlayerActivity::class.java).apply {
                 // A Telegram copy (CP80) travels as the upload and a wish for that copy, so the
