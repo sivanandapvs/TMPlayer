@@ -262,7 +262,8 @@ object HomeFeatured {
      * inline preview. Without either, all there is to show is the generated cover.
      */
     fun hasArt(item: MediaItem): Boolean =
-        item.thumbnailFileId > 0 || (item.miniThumbnail?.isNotEmpty() == true)
+        item.identity is MediaIdentity.TorBox ||
+            item.thumbnailFileId > 0 || (item.miniThumbnail?.isNotEmpty() == true)
 
     /** [hasArt] for a shelf's tile: a show by its newest episode, the one its tile shows. */
     fun hasArt(entry: ShelfEntry): Boolean = when (entry) {
