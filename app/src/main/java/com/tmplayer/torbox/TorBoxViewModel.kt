@@ -40,10 +40,12 @@ class TorBoxViewModel internal constructor(
     init {
         run {
             key = withContext(Dispatchers.IO) { credentials.read() }
-            mutable.value = mutable.value.copy(connected = key != null)
-            key?.let { token ->
-                showCached(token, mutable.value.source)
-                load(token, false)
+            val token = key
+            if (token == null) {
+                mutable.value = TorBoxState()
+            } else {
+                val account = withContext(Dispatchers.IO) { api.account(token) }
+                mutable.value = TorBoxState(connected = true, account = account, refreshed = true)
             }
         }
     }
@@ -51,24 +53,21 @@ class TorBoxViewModel internal constructor(
     fun connect(candidate: String, done: () -> Unit) = run {
         val trimmed = candidate.trim()
         if (!TorBoxApi.validKey(trimmed)) throw TorBoxFailure("key")
-        val account = withContext(Dispatchers.Default) { api.account(trimmed) }
-        // Persist only after validation. An invalid replacement never loses a working account.
-        // Credential replacement is one transaction even if the screen is closed during disk I/O.
+        // Validate the credential with the account endpoint before replacing a working key.
+        val account = withContext(Dispatchers.IO) { api.account(trimmed) }
         withContext(NonCancellable) {
             withContext(Dispatchers.IO) { credentials.write(trimmed) }
             key = trimmed
-            mutable.value = TorBoxState(connected = true, busy = true, account = account)
+            mutable.value = TorBoxState(connected = true, account = account, refreshed = true)
             done()
         }
-        load(trimmed, false, refreshAccount = false)
     }
 
-    fun refresh(more: Boolean = false) = run { key?.let { load(it, more) } }
-
-    fun selectSource(source: TorBoxSource) = run {
-        if (source == mutable.value.source) return@run
-        mutable.value = mutable.value.copy(source = source, files = emptyList(), nextOffset = null, refreshed = false, fromCache = false)
-        key?.let { token -> showCached(token, source); load(token, false) }
+    /** Re-check the account only. The media catalog is owned and refreshed by Home. */
+    fun refresh() = run {
+        val token = key ?: return@run
+        val account = withContext(Dispatchers.IO) { api.account(token) }
+        mutable.value = mutable.value.copy(connected = true, account = account, refreshed = true, error = null)
     }
 
     fun disconnect() = run {
@@ -77,28 +76,6 @@ class TorBoxViewModel internal constructor(
             key = null
             mutable.value = TorBoxState()
         }
-    }
-
-    private suspend fun load(token: String, more: Boolean, refreshAccount: Boolean = !more) {
-        val before = mutable.value
-        val offset = if (more) before.nextOffset ?: return else 0
-        val account = withContext(Dispatchers.Default) {
-            if (refreshAccount) api.account(token) else before.account ?: api.account(token)
-        }
-        val page = withContext(Dispatchers.Default) { api.library(token, offset, refresh = !more, source = before.source) }
-        val files = withContext(Dispatchers.Default) {
-            ((if (more) before.files else emptyList()) + page.files)
-                .distinctBy { it.key }.sortedByDescending { it.added }.take(MAX_FILES)
-        }
-        val cached = more || withContext(Dispatchers.IO) { credentials.writeLibrary(token, before.source, page) }
-        mutable.value = before.copy(connected = true, busy = true, account = account, files = files,
-            nextOffset = page.nextOffset.takeIf { files.size < MAX_FILES }, refreshed = true,
-            fromCache = false, error = if (cached) null else "cache")
-    }
-
-    private suspend fun showCached(token: String, source: TorBoxSource) {
-        val page = withContext(Dispatchers.IO) { credentials.readLibrary(token, source) } ?: return
-        mutable.value = mutable.value.copy(files = page.files, nextOffset = page.nextOffset, refreshed = true, fromCache = true)
     }
 
     private fun run(block: suspend () -> Unit) {
