@@ -883,16 +883,23 @@ internal fun HomePane(
         )
     }
     opened.series?.let { series ->
+        fun sourceTitle(item: MediaItem): String =
+            if (item.identity is com.tmplayer.data.MediaIdentity.TorBox) "TorBox" else chatTitle(item.chatId)
         SeriesOpened(
             series = series,
             watch = watch,
-            onPlay = { onPlayNow(it, chatTitle(it.chatId)) },
+            onPlay = { onPlayNow(it, sourceTitle(it)) },
             onDismiss = { opened.open(null) },
-            onLongClick = { onHoldMedia(it, chatTitle(it.chatId)) },
+            onLongClick = { onHoldMedia(it, sourceTitle(it)) },
             onDownload = onDownloadSeason,
             // Home is outside every chat: the page names the show's and goes to it (HX20).
-            chatTitle = chatTitle(series.cover.chatId),
-            onOpenChat = { opened.open(null); onOpenChat(series.cover.chatId) },
+            chatTitle = sourceTitle(series.cover),
+            onOpenChat = {
+                if (series.cover.identity !is com.tmplayer.data.MediaIdentity.TorBox) {
+                    opened.open(null)
+                    onOpenChat(series.cover.chatId)
+                }
+            },
         )
     }
 }
