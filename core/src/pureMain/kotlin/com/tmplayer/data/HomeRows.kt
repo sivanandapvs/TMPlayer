@@ -329,7 +329,7 @@ object HomeRows {
                 markSeen(entries, seen)
                 if (entries.isNotEmpty()) {
                     add(HomeRow.Recent(entries, loaded = recent != null || torBoxItems.isNotEmpty(),
-                        starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
+                        starredOnly = starredOnly && torBoxItems.isEmpty(), chatIds = homeOrder, asRow = asRow))
                 } else if (chatsPending || (if (recentFrom == null) starredIds.any { it !in loaded } else homeOrder.take(CHOSEN_WAIT).any { it !in loaded })) {
                     // Nothing yet, but a starred chat's own videos are still on their way.
                     add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
