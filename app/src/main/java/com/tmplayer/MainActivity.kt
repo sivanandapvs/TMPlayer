@@ -879,7 +879,16 @@ private fun Root() {
     val chatsState by chatsViewModel.state.collectAsStateWithLifecycle()
     // TorBox is a provider for the same Home feed, not a destination the viewer has to browse
     // separately. It restores its encrypted cache first and refreshes when the shell resumes.
-    val torBoxHomeViewModel: TorBoxHomeViewModel = viewModel(viewModelStoreOwner = ShellViewModels)
+    val torBoxHomeViewModel: TorBoxHomeViewModel = viewModel(
+        viewModelStoreOwner = ShellViewModels,
+        // ShellViewModels deliberately owns the store process-wide, but unlike the Activity it
+        // has no default factory. TorBoxHomeViewModel needs the Application constructor argument.
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+                TorBoxHomeViewModel(context.applicationContext as android.app.Application) as T
+        },
+    )
     // Home's rows, fetched a row at a time as they come on screen, with the size limits a chat's
     // grid uses.
     val homeViewModel: HomeViewModel = viewModel(
@@ -1571,12 +1580,9 @@ private fun Root() {
                     )
                 }
                 if (!keyboard) {
-                    androidx.compose.material3.TextButton(
-                        onClick = { context.startActivity(android.content.Intent(context, com.tmplayer.torbox.TorBoxActivity::class.java)) },
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    ) {
-                        androidx.compose.material3.Text(LocalStrings.current.text("torbox.open"))
-                    }
+                    // TorBox is configured from Settings; its library is consumed by Home.
+                    // Keep sign-in focused on the Telegram account rather than opening a second
+                    // cloud-library destination before the shell is available.
                     // Under every sign in screen: the line Telegram's terms ask for, the proxy
                     // settings, for a network where Telegram is only reached through one, and Send
                     // logs, for a sign in that is stuck with no error state to Try again from (HX
