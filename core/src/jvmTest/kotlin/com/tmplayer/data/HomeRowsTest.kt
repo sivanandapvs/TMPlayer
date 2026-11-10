@@ -57,6 +57,77 @@ class HomeRowsTest {
     }
 
     @Test
+    fun `TorBox and Telegram share one Recently added timeline`() {
+        val telegram = video(1, fileName = "Telegram.Film.2022.1080p.mkv", date = 40)
+        val cloud = MediaItem(
+            chatId = 0L,
+            messageId = 0,
+            fileId = 0,
+            title = "Cloud Film 2024",
+            sizeBytes = 2_000_000_000,
+            durationSec = 7_200,
+            mimeType = "video/*",
+            thumbnailFileId = 0,
+            miniThumbnail = null,
+            date = 50,
+            fileName = "Cloud.Film.2024.1080p.mkv",
+            identity = MediaIdentity.TorBox(
+                com.tmplayer.torbox.TorBoxSource.Torrents,
+                transferId = 900L,
+                fileId = 77L,
+            ),
+        )
+        val rows = HomeRows.build(
+            continueWatching = emptyList(),
+            favourites = listOf(chat(1)),
+            loaded = mapOf(1L to listOf(telegram)),
+            recent = listOf(telegram),
+            torBoxItems = listOf(cloud),
+        )
+        val recent = rows.filterIsInstance<HomeRow.Recent>().single()
+        val ids = recent.entries.map { entry ->
+            when (entry) {
+                is ShelfEntry.File -> entry.item.id
+                is ShelfEntry.Show -> entry.series.cover.id
+            }
+        }
+        assertEquals(listOf(cloud.id, telegram.id), ids)
+        assertTrue(!recent.starredOnly)
+        assertEquals(cloud.identity?.key, (recent.entries.first() as ShelfEntry.File).item.identity?.key)
+    }
+
+    @Test
+    fun `TorBox can populate Recently added without Telegram favourites`() {
+        val cloud = MediaItem(
+            chatId = 0L,
+            messageId = 0,
+            fileId = 0,
+            title = "Cloud Film 2024",
+            sizeBytes = 2_000_000_000,
+            durationSec = 7_200,
+            mimeType = "video/*",
+            thumbnailFileId = 0,
+            miniThumbnail = null,
+            date = 50,
+            fileName = "Cloud.Film.2024.1080p.mkv",
+            identity = MediaIdentity.TorBox(
+                com.tmplayer.torbox.TorBoxSource.Usenet,
+                transferId = 901L,
+                fileId = 78L,
+            ),
+        )
+        val rows = HomeRows.build(
+            continueWatching = emptyList(),
+            favourites = emptyList(),
+            loaded = emptyMap(),
+            recent = emptyList(),
+            torBoxItems = listOf(cloud),
+        )
+        val recent = rows.filterIsInstance<HomeRow.Recent>().single()
+        assertEquals(cloud.id, (recent.entries.single() as ShelfEntry.File).item.id)
+    }
+
+    @Test
     fun `rows come in order continue, recent, then starred chats`() {
         val a = video(1)
         val b = video(2)
