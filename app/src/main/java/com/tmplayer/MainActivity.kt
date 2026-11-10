@@ -1,6 +1,7 @@
 package com.tmplayer
 
 import com.tmplayer.ui.components.TopMessageHost
+import com.tmplayer.torbox.TorBoxHomeViewModel
 import androidx.compose.ui.zIndex
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -876,6 +877,9 @@ private fun Root() {
     }
 
     val chatsState by chatsViewModel.state.collectAsStateWithLifecycle()
+    // TorBox is a provider for the same Home feed, not a destination the viewer has to browse
+    // separately. It restores its encrypted cache first and refreshes when the shell resumes.
+    val torBoxHomeViewModel: TorBoxHomeViewModel = viewModel(viewModelStoreOwner = ShellViewModels)
     // Home's rows, fetched a row at a time as they come on screen, with the size limits a chat's
     // grid uses.
     val homeViewModel: HomeViewModel = viewModel(
@@ -888,6 +892,7 @@ private fun Root() {
                     cached = true,
                     // Home's refetches wait while a video plays (see HomeViewModel's busy).
                     busy = { com.tmplayer.data.WatchCache.anyPlaying() },
+                    torBoxItems = torBoxHomeViewModel.items,
                 ) as T
         },
     )
@@ -897,7 +902,10 @@ private fun Root() {
     val cacheRecord by settings.cachedVideos.collectAsStateWithLifecycle(initialValue = null)
     val shellInFront = lifecycleState.isAtLeast(Lifecycle.State.RESUMED)
     LaunchedEffect(shellInFront, cacheRecord) {
-        if (shellInFront) homeViewModel.refreshLocalAvailability()
+        if (shellInFront) {
+            homeViewModel.refreshLocalAvailability()
+            torBoxHomeViewModel.refresh()
+        }
     }
     // Home keeps itself up to date while the app is in front: on coming back, when its rows are
     // a minute old, and every few minutes after, in place (the tiles stay up and keep the focus).
@@ -925,7 +933,10 @@ private fun Root() {
             // hours, rebuilding every row each time. Untouched, Home waits for the next press or
             // for coming back to the front ([refreshIfStale]).
             val idle = android.os.SystemClock.elapsedRealtime() - MainActivity.lastInputAt
-            if (idle < HomeViewModel.AUTO_REFRESH_MS) homeViewModel.refreshInPlace(background = true)
+            if (idle < HomeViewModel.AUTO_REFRESH_MS) {
+                homeViewModel.refreshInPlace(background = true)
+                torBoxHomeViewModel.refresh()
+            }
         }
     }
     val accountHeader by chatsViewModel.accountHeader.collectAsStateWithLifecycle()
@@ -1172,6 +1183,15 @@ private fun Root() {
      * state without every early return having to remember to clear it.
      */
     suspend fun playNow(requested: MediaItem, confirmed: Boolean, requestedChat: String) {
+        // A cloud item has a provider identity rather than Telegram's chat/message/file identifiers.
+        // Hand it to the player's existing TorBox path before any Telegram cache or TDLib checks.
+        if (requested.identity is com.tmplayer.data.MediaIdentity.TorBox) {
+            withContext(Dispatchers.Main) {
+                com.tmplayer.ui.components.PlayPress.open()
+                context.startActivity(PlayerActivity.cloudIntent(context, requested))
+            }
+            return
+        }
         // A film posted more than once plays the copy chosen for the viewer (VideoCopies.pick):
         // the one they picked, one on the device, the one they started, their usual quality.
         // Off the main thread: judging a copy asks the codec list (HX2), slow the first time on a stick.
