@@ -48,6 +48,7 @@ class TorBoxSessionTest {
             if (request.url.contains("/user/me?")) {
                 accountGate?.await()
                 if (request.headers["Authorization"] == "Bearer $rejectKey") return HttpResponse(401)
+                if (failAccount) return HttpResponse(503)
                 return ok("""{"success":true,"data":{"email":"demo@example.invalid","plan":2}}""")
             }
             if (failLibrary) return HttpResponse(503)
@@ -83,9 +84,9 @@ class TorBoxSessionTest {
         model.connect(token) {}
         awaitState { model.state.value.connected && !model.state.value.busy }
         assertEquals(1, service.calls.count { it.url.contains("/user/me?") })
-        assertEquals(1, service.calls.count { it.url.contains("/mylist?") })
+        assertEquals(0, service.calls.count { it.url.contains("/mylist?") })
         assertEquals(listOf(token), vault.writes)
-        val library = model.state.value.files
+        assertTrue(model.state.value.files.isEmpty())
 
         service.rejectKey = "invalid-account-key"
         model.connect("invalid-account-key") {}
@@ -93,7 +94,7 @@ class TorBoxSessionTest {
         assertTrue(model.state.value.connected)
         assertEquals(token, vault.key)
         assertEquals(listOf(token), vault.writes)
-        assertEquals(library, model.state.value.files)
+        assertTrue(model.state.value.files.isEmpty())
     }
 
     @Test fun aFailedRefreshKeepsTheLibraryAndDisconnectNeedsNoRemoteEndpoint() {
@@ -102,12 +103,14 @@ class TorBoxSessionTest {
         val model = model(service, vault)
         awaitState { !model.state.value.busy }
         model.connect(token) {}
-        awaitState { model.state.value.files.isNotEmpty() && !model.state.value.busy }
-        val library = model.state.value.files
-        service.failLibrary = true
+        awaitState { model.state.value.connected && !model.state.value.busy }
+        val account = model.state.value.account
+        service.failAccount = true
         model.refresh()
         awaitState { model.state.value.error == "network" && !model.state.value.busy }
-        assertEquals(library, model.state.value.files)
+        assertTrue(model.state.value.connected)
+        assertEquals(account, model.state.value.account)
+        assertTrue(model.state.value.files.isEmpty())
         val calls = service.calls.size
         model.disconnect()
         awaitState { !model.state.value.connected && !model.state.value.busy }
@@ -117,7 +120,7 @@ class TorBoxSessionTest {
         assertEquals(calls, service.calls.size)
     }
 
-    @Test fun theSavedFirstPageAppearsBeforeTheNetworkAnswers() {
+    @Test fun accountSettingsDoesNotReadOrRequestTheCloudLibrary() {
         val service = Service().apply { accountGate = CompletableDeferred() }
         val cached = TorBoxFile(1, 0, "Saved.example.mp4", 1000, "", true)
         val vault = MemoryVault().apply {
@@ -125,13 +128,15 @@ class TorBoxSessionTest {
             pages[token to TorBoxSource.Torrents] = TorBoxPage(listOf(cached), null)
         }
         val model = model(service, vault)
-        awaitState { model.state.value.fromCache }
-        assertTrue(model.state.value.busy)
-        assertEquals(listOf(cached), model.state.value.files)
+        awaitState { model.state.value.busy }
+        assertFalse(model.state.value.connected)
+        assertTrue(model.state.value.files.isEmpty())
         service.accountGate?.complete(Unit)
-        awaitState { !model.state.value.busy }
-        assertFalse(model.state.value.fromCache)
-        assertEquals("Example.mp4", model.state.value.files.singleOrNull()?.name)
-        assertEquals(2, service.calls.size)
+        awaitState { model.state.value.connected && !model.state.value.busy }
+        assertEquals("demo@example.invalid", model.state.value.account?.email)
+        assertEquals(1, service.calls.count { it.url.contains("/user/me?") })
+        assertEquals(0, service.calls.count { it.url.contains("/mylist?") })
+        // The encrypted cache is retained for TorBoxHomeViewModel, which owns catalog display.
+        assertEquals(listOf(cached), vault.pages[token to TorBoxSource.Torrents]?.files)
     }
 }
