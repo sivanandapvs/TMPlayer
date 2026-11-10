@@ -41,6 +41,7 @@ class TorBoxSessionTest {
     private class Service : HttpTransport {
         val calls = CopyOnWriteArrayList<HttpRequest>()
         @Volatile var rejectKey: String? = null
+        @Volatile var failAccount = false
         @Volatile var failLibrary = false
         var accountGate: CompletableDeferred<Unit>? = null
         override suspend fun send(request: HttpRequest): HttpResponse {
@@ -97,7 +98,7 @@ class TorBoxSessionTest {
         assertTrue(model.state.value.files.isEmpty())
     }
 
-    @Test fun aFailedRefreshKeepsTheLibraryAndDisconnectNeedsNoRemoteEndpoint() {
+    @Test fun aFailedAccountRefreshKeepsTheAccountAndDisconnectNeedsNoRemoteEndpoint() {
         val service = Service()
         val vault = MemoryVault()
         val model = model(service, vault)
