@@ -1380,44 +1380,21 @@ private const val FEATURED_KEY = "featured"
 private val TV_DOWN_STEP = 200.dp
 
 /**
- * The carousel's pages from the Recently added row [recent]: null while that row is still being
- * asked for or the fill is still deciding (the carousel then holds its frame with a stand-in, at
- * most [HomeFeatured.FILL_WAIT_MS] once the row is in), empty for nothing to feature, which hides
- * the carousel. Only complete pages ([com.tmplayer.ui.online.completeFeatured]), decided once
- * per fill so no page comes or goes while it is looked at; a refresh keeps the pages up until
- * the new ones are decided. With online lookups off there are no complete pages, so none at once.
+ * The carousel's local candidates from Recently added. Null while that row is still being
+ * fetched, empty when there is nothing eligible to feature. Metadata is deliberately not a gate:
+ * [FeaturedPage] loads it for the visible title and uses the Telegram thumbnail or generated
+ * cover until a verified backdrop arrives. A missing API key, offline start or a slow metadata
+ * response must never remove the hero after its skeleton has appeared.
  */
 @Composable
-private fun rememberFeatured(recent: HomeRow.Recent?): List<com.tmplayer.data.FeaturedPick>? {
-    val online = com.tmplayer.online.OnlineMetadata.current
-    val enabled = online?.settings?.collectAsState()?.value?.enabled == true
-    val candidates = remember(recent) {
-        recent?.takeIf { it.loaded }?.let { com.tmplayer.data.HomeFeatured.pick(it.entries, com.tmplayer.data.HomeFeatured.CANDIDATES) }
+private fun rememberFeatured(recent: HomeRow.Recent?): List<com.tmplayer.data.FeaturedPick>? =
+    remember(recent) { featuredCandidatesForHome(recent) }
+
+/** Kept pure so the local-art fallback does not depend on OnlineMetadata being installed/enabled. */
+internal fun featuredCandidatesForHome(recent: HomeRow.Recent?): List<com.tmplayer.data.FeaturedPick>? =
+    recent?.takeIf { it.loaded }?.let {
+        com.tmplayer.data.HomeFeatured.pick(it.entries, com.tmplayer.data.HomeFeatured.CANDIDATES)
     }
-    var decided by remember { mutableStateOf<List<com.tmplayer.data.FeaturedPick>?>(null) }
-    LaunchedEffect(candidates, online, enabled) {
-        if (!enabled) {
-            decided = emptyList()
-            return@LaunchedEffect
-        }
-        val picks = candidates ?: return@LaunchedEffect
-        if (picks.isEmpty()) {
-            decided = picks
-            return@LaunchedEffect
-        }
-        // The lookups still unanswered when the wait is up go on in this effect, so their answers
-        // are on the device for the next fill; they stop with it.
-        val keys = try {
-            com.tmplayer.ui.online.completeFeatured(picks, this)
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            emptySet()
-        }
-        decided = picks.filter { it.key in keys }.take(com.tmplayer.data.HomeFeatured.LIMIT)
-    }
-    return if (!enabled) emptyList() else decided
-}
 
 /** How long an empty Home waits for its rows before it takes itself for a first run. */
 private const val ROWS_WAIT_MS = 10_000L
