@@ -269,6 +269,8 @@ object HomeRows {
         layout: HomeLayout = HomeLayout(),
         recentFrom: List<Long>? = null,
         noneChosen: Boolean = false,
+        /** Ready cloud files from TorBox, already identity-tagged and newest first. */
+        torBoxItems: List<MediaItem> = emptyList(),
     ): List<HomeRow> = buildList<HomeRow> {
         val seen = HashSet<String>()
         // Continue watching off: nothing is in progress as far as Home goes, so a film part way
@@ -302,27 +304,34 @@ object HomeRows {
         val starredOnly = homeKnown && (starred == null || homeIds.all { it in starred })
         val asRow = layout.recentlyAdded
         val wanted = layout.needsRecent
-        if (wanted && noneChosen) {
+        if (wanted && noneChosen && torBoxItems.isEmpty()) {
             add(HomeRow.Recent(emptyList(), loaded = true, starredOnly = false, asRow = asRow, noneChosen = true))
-        } else if (wanted && recentFrom != null && homeIds.isEmpty()) {
+        } else if (wanted && recentFrom != null && homeIds.isEmpty() && torBoxItems.isEmpty()) {
             // Chosen chats, none of them in the chat list yet: it is still on its way.
             add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = false, asRow = asRow))
-        } else if (wanted && (homeIds.size >= recentMinStarred.coerceAtLeast(1) || (recentFrom == null && autoFill && (recent == null || chatsPending)))) {
+        } else if (wanted && (torBoxItems.isNotEmpty() || homeIds.size >= recentMinStarred.coerceAtLeast(1) || (recentFrom == null && autoFill && (recent == null || chatsPending)))) {
             val starredIds = homeIds
-            if (recent == null) {
+            if (recent == null && torBoxItems.isEmpty()) {
                 add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
             } else {
-                // The search across chats reaches a starred chat further back than its own row's
-                // fetch, and a starred chat's fetch fills in whatever the search did not reach.
-                val pool = recent.filter { it.chatId in starredIds } + starredIds.flatMap { loaded[it].orEmpty() }
-                // A copy, so the rows below still show these videos in their own chats.
-                val entries = row(pool, HashSet(inContinue), shownCopies, inContinue)
+                // One chronological shelf: Telegram's newest items and TorBox's ready cloud files.
+                // Arrange each provider independently so a same-title file from another provider
+                // never becomes a Telegram copy with a fabricated chat/message id.
+                val telegramPool = recent.orEmpty().filter { it.chatId in starredIds } +
+                    starredIds.flatMap { loaded[it].orEmpty() }
+                val telegramEntries = arranged(telegramPool, HashSet(inContinue), shownCopies, inContinue)
+                val cloudEntries = SeriesShelf.arrange(torBoxItems)
+                fun addedAt(entry: ShelfEntry): Int = when (entry) {
+                    is ShelfEntry.File -> entry.item.date
+                    is ShelfEntry.Show -> entry.series.cover.date
+                }
+                val entries = (telegramEntries + cloudEntries).sortedByDescending(::addedAt).take(LIMIT)
+                markSeen(entries, seen)
                 if (entries.isNotEmpty()) {
-                    add(HomeRow.Recent(entries, loaded = true, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
+                    add(HomeRow.Recent(entries, loaded = recent != null || torBoxItems.isNotEmpty(),
+                        starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
                 } else if (chatsPending || (if (recentFrom == null) starredIds.any { it !in loaded } else homeOrder.take(CHOSEN_WAIT).any { it !in loaded })) {
-                    // Nothing yet, but a starred chat's own videos are still on their way: the row
-                    // stays as loading, so the carousel holds its place rather than vanishing and
-                    // coming back once they land (seen on a cold start on the TV stick).
+                    // Nothing yet, but a starred chat's own videos are still on their way.
                     add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
                 }
             }
