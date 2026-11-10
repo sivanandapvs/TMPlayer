@@ -126,6 +126,8 @@ class HomeRowsTest {
         )
         val recent = rows.filterIsInstance<HomeRow.Recent>().single()
         assertEquals(cloud.id, (recent.entries.single() as ShelfEntry.File).item.id)
+        assertTrue(recent.hasMore)
+        assertEquals(1, HomeRows.seeAll(recent, emptyList()).orEmpty().size)
     }
 
     @Test

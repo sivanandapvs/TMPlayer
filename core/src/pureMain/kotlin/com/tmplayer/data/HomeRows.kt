@@ -137,12 +137,14 @@ sealed interface HomeRow {
         val noneChosen: Boolean = false,
         /** Items beyond the visible strip, including cloud providers without Telegram page lanes. */
         val extraEntries: List<ShelfEntry> = emptyList(),
+        /** True when this row contains cloud media, even when all of it fits in the visible strip. */
+        val hasCloudItems: Boolean = false,
     ) : HomeRow {
         override val key: String get() = "recent"
 
-        /** Its See all page has cloud overflow already, or reads further Telegram pages. */
+        /** Its See all page has cloud media/overflow already, or reads further Telegram pages. */
         override val hasMore: Boolean get() =
-            extraEntries.isNotEmpty() || (loaded && chatIds.isNotEmpty() && entries.isNotEmpty())
+            hasCloudItems || extraEntries.isNotEmpty() || (loaded && chatIds.isNotEmpty() && entries.isNotEmpty())
     }
 }
 
@@ -323,7 +325,7 @@ object HomeRows {
                 val telegramPool = recent.orEmpty().filter { it.chatId in starredIds } +
                     starredIds.flatMap { loaded[it].orEmpty() }
                 val telegramEntries = arranged(telegramPool, HashSet(inContinue), shownCopies, inContinue)
-                val cloudEntries = SeriesShelf.arrange(torBoxItems)
+                val cloudEntries = SameTitle.dedupe(SeriesShelf.arrange(torBoxItems))
                 fun addedAt(entry: ShelfEntry): Int = when (entry) {
                     is ShelfEntry.File -> entry.item.date
                     is ShelfEntry.Show -> entry.series.cover.date
@@ -335,7 +337,7 @@ object HomeRows {
                 if (entries.isNotEmpty()) {
                     add(HomeRow.Recent(entries, loaded = recent != null || torBoxItems.isNotEmpty(),
                         starredOnly = starredOnly && torBoxItems.isEmpty(), chatIds = homeOrder, asRow = asRow,
-                        extraEntries = extraEntries))
+                        extraEntries = extraEntries, hasCloudItems = torBoxItems.isNotEmpty()))
                 } else if (chatsPending || (if (recentFrom == null) starredIds.any { it !in loaded } else homeOrder.take(CHOSEN_WAIT).any { it !in loaded })) {
                     // Nothing yet, but a starred chat's own videos are still on their way.
                     add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
@@ -405,7 +407,8 @@ object HomeRows {
             .sortedWith(FeedMerge.newestFirst)
         val cloudPool = own.filter { it.identity is MediaIdentity.TorBox }.distinctBy { it.id }
             .sortedWith(FeedMerge.newestFirst)
-        val arranged = (SeriesShelf.arrange(telegramPool) + SeriesShelf.arrange(cloudPool))
+        val arranged = (SameTitle.dedupe(SeriesShelf.arrange(telegramPool)) +
+            SameTitle.dedupe(SeriesShelf.arrange(cloudPool)))
             .sortedByDescending { entry ->
                 when (entry) {
                     is ShelfEntry.File -> entry.item.date
