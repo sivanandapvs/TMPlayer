@@ -376,10 +376,13 @@ data class MediaItem(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MediaItem) return false
-        // Identity-based equality when both have identities; falls back to fields otherwise.
-        val thisKey = identity?.key
-        val otherKey = other.identity?.key
-        if (thisKey != null && otherKey != null) return thisKey == otherKey
+        // Compare the effective provider identity first. The legacy Telegram key remains
+        // chatId:messageId, while a TorBox key cannot collide with a fabricated Telegram pair.
+        val thisKey = identity?.key ?: "$chatId:$messageId"
+        val otherKey = other.identity?.key ?: "${other.chatId}:${other.messageId}"
+        if (thisKey != otherKey) return false
+        // Identity establishes which media this is; every visible/playback field still participates
+        // so updated metadata, artwork, locality and quality changes reach Compose.
         return chatId == other.chatId &&
             messageId == other.messageId &&
             fileId == other.fileId &&
@@ -414,9 +417,8 @@ data class MediaItem(
     }
 
     override fun hashCode(): Int {
-        val identityKey = identity?.key
-        if (identityKey != null) return identityKey.hashCode()
-        var result = chatId.hashCode()
+        var result = (identity?.key ?: "$chatId:$messageId").hashCode()
+        result = 31 * result + chatId.hashCode()
         result = 31 * result + messageId.hashCode()
         result = 31 * result + fileId
         result = 31 * result + title.hashCode()
