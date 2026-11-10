@@ -135,11 +135,14 @@ sealed interface HomeRow {
          * left in the chat list: a line in the row's place says so and leads to Add chats.
          */
         val noneChosen: Boolean = false,
+        /** Items beyond the visible strip, including cloud providers without Telegram page lanes. */
+        val extraEntries: List<ShelfEntry> = emptyList(),
     ) : HomeRow {
         override val key: String get() = "recent"
 
-        /** Its See all page reads on through [chatIds], past the row's [HomeRows.LIMIT]. */
-        override val hasMore: Boolean get() = loaded && chatIds.isNotEmpty() && entries.isNotEmpty()
+        /** Its See all page has cloud overflow already, or reads further Telegram pages. */
+        override val hasMore: Boolean get() =
+            extraEntries.isNotEmpty() || (loaded && chatIds.isNotEmpty() && entries.isNotEmpty())
     }
 }
 
@@ -325,11 +328,14 @@ object HomeRows {
                     is ShelfEntry.File -> entry.item.date
                     is ShelfEntry.Show -> entry.series.cover.date
                 }
-                val entries = (telegramEntries + cloudEntries).sortedByDescending(::addedAt).take(LIMIT)
+                val allEntries = (telegramEntries + cloudEntries).sortedByDescending(::addedAt)
+                val entries = allEntries.take(LIMIT)
+                val extraEntries = allEntries.drop(LIMIT)
                 markSeen(entries, seen)
                 if (entries.isNotEmpty()) {
                     add(HomeRow.Recent(entries, loaded = recent != null || torBoxItems.isNotEmpty(),
-                        starredOnly = starredOnly && torBoxItems.isEmpty(), chatIds = homeOrder, asRow = asRow))
+                        starredOnly = starredOnly && torBoxItems.isEmpty(), chatIds = homeOrder, asRow = asRow,
+                        extraEntries = extraEntries))
                 } else if (chatsPending || (if (recentFrom == null) starredIds.any { it !in loaded } else homeOrder.take(CHOSEN_WAIT).any { it !in loaded })) {
                     // Nothing yet, but a starred chat's own videos are still on their way.
                     add(HomeRow.Recent(emptyList(), loaded = false, starredOnly = starredOnly, chatIds = homeOrder, asRow = asRow))
@@ -386,21 +392,31 @@ object HomeRows {
             is HomeRow.Recent -> row.entries
             else -> return null
         }
-        val own = entries.flatMap { entry ->
-            when (entry) {
-                is ShelfEntry.File -> listOf(entry.item)
-                is ShelfEntry.Show -> entry.series.episodes.flatMap { it.copies }
-            }
+        val homeEntries = entries + (row as? HomeRow.Recent)?.extraEntries.orEmpty()
+        fun filesOf(entry: ShelfEntry): List<MediaItem> = when (entry) {
+            is ShelfEntry.File -> listOf(entry.item)
+            is ShelfEntry.Show -> entry.series.episodes.flatMap { it.copies }
         }
-        val pool = (own + items).distinctBy { it.id }.sortedWith(FeedMerge.newestFirst)
-        val arranged = SeriesShelf.arrange(pool)
+        val own = homeEntries.flatMap(::filesOf)
+        // Never let matching names make a Telegram upload and a TorBox download copies of one
+        // another. Each provider has its own identity and playback route, so arrange them apart.
+        val telegramPool = (own.filterNot { it.identity is MediaIdentity.TorBox } +
+            items.filterNot { it.identity is MediaIdentity.TorBox }).distinctBy { it.id }
+            .sortedWith(FeedMerge.newestFirst)
+        val cloudPool = own.filter { it.identity is MediaIdentity.TorBox }.distinctBy { it.id }
+            .sortedWith(FeedMerge.newestFirst)
+        val arranged = (SeriesShelf.arrange(telegramPool) + SeriesShelf.arrange(cloudPool))
+            .sortedByDescending { entry ->
+                when (entry) {
+                    is ShelfEntry.File -> entry.item.date
+                    is ShelfEntry.Show -> entry.series.cover.date
+                }
+            }
         val byKey = arranged.associateBy { it.key }
-        val first = entries.map { byKey[it.key] ?: it }
+        val first = homeEntries.map { byKey[it.key] ?: it }
         val firstKeys = first.mapTo(HashSet()) { it.key }
-        // Copies of one film across chats, or at another size, folded as the row folds them
-        // ([arranged]): without this the pages read on past the row listed every copy as a tile
-        // of its own. A copy folds into the tile already standing, so nothing on screen moves.
-        return SameTitle.dedupe(first + arranged.filterNot { it.key in firstKeys })
+        // Copies fold within their provider; a matching title from another provider stays distinct.
+        return first + arranged.filterNot { it.key in firstKeys }
     }
 
     /**
