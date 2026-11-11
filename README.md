@@ -4,7 +4,7 @@ Veylora is an Android media player built on TMPlayer. It preserves playback of v
 in your own Telegram chats and adds an optional TorBox cloud-library destination.
 
 Development is isolated on `feature/torbox-integration-rebrand`. This is an integration build,
-not a published release. The application ID remains `com.tmplayer`.
+not a published release. The application ID is `com.veylora`, so this build installs separately from the original TMPlayer app.
 
 ## Android
 
@@ -49,6 +49,22 @@ Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 
 Veylora is a GPL-3.0-or-later derivative of TMPlayer. Original authors retain their copyrights.
 See [LICENSE](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) and the Git history.
+
+## Credits and acknowledgements
+
+**Veylora is a derivative of [TMPlayer](https://github.com/dracu-lah/TMPlayer), the original open-source Telegram media player.**
+
+The original TMPlayer project, its architecture, source code, Telegram integration, playback foundations, and contributions by its author and community remain credited to the original TMPlayer project and its contributors.
+
+Veylora adds independently developed changes, including its branding and visual identity, TorBox integration, interface modifications, and additional features. These changes do not transfer ownership of the original TMPlayer work.
+
+Thank you to the original TMPlayer author and contributors for making this derivative project possible.
+
+- Original project: https://github.com/dracu-lah/TMPlayer
+- Original project website: https://tmplayer.org/
+- Original licence: GNU GPL-3.0-or-later
+
+All original copyright notices, licence terms, and third-party attributions remain in force. See [LICENSE](LICENSE), [LICENSE-OPENSSL-EXCEPTION.md](LICENSE-OPENSSL-EXCEPTION.md), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 [GNU GPL-3.0-or-later](LICENSE) © 2026 dracu-lah, with an [additional permission for OpenSSL](LICENSE-OPENSSL-EXCEPTION.md).
 The original player artwork retained in `art/player.svg` came from [SVG Repo](https://www.svgrepo.com).
