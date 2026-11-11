@@ -20,7 +20,7 @@ concurrency:
 jobs:
   android-debug:
     name: Build custom FFmpeg and Android APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 240
 
     steps:
@@ -72,11 +72,6 @@ jobs:
           fi
           echo "$ANDROID_HOME/cmake/3.22.1/bin" >> "$GITHUB_PATH"
 
-      - name: Install FFmpeg build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes curl make meson ninja-build nasm pkg-config patch
-
       - name: Cache FFmpeg source downloads
         uses: actions/cache@v4
         with:
@@ -98,9 +93,13 @@ jobs:
           test -x "$ANDROID_HOME/build-tools/36.0.0/aapt"
           test -d "$ANDROID_HOME/ndk/25.2.9519653"
           test -x "$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+          command -v curl
+          command -v make
           command -v meson
           command -v ninja
           command -v nasm
+          command -v pkg-config
+          command -v patch
 
       # Build the repository's pinned FFmpeg/NextLib extension AAR.
       - name: Build custom FFmpeg extension AAR
@@ -130,9 +129,6 @@ jobs:
           OPENSUBTITLES_API_KEY: ${{ secrets.OPENSUBTITLES_API_KEY }}
           MSONE_GATEWAY_KEY: ${{ secrets.MSONE_GATEWAY_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: ./gradlew --no-daemon --max-workers=2 --no-parallel --console=plain :app:assembleDebug -PtmRequireMedia3ext=true
 
       - name: Verify APK identity, launchers and signature
@@ -203,4 +199,3 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-# CI trigger: workflow re-enabled; validate current Veylora integration commit.
