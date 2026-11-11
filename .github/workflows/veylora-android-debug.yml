@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - main
+      - feature/torbox-integration-rebrand
   pull_request:
     branches:
-      - feature/torbox-integration-rebrand
+      - main
   workflow_dispatch:
 
 permissions:
@@ -39,6 +40,16 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+
+      - name: Create local Android SDK configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_HOME:-}"
+          test -d "$ANDROID_HOME"
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+          grep -F "sdk.dir=$ANDROID_HOME" local.properties
+          git check-ignore -q local.properties
 
       - name: Install Android SDK packages
         shell: bash
