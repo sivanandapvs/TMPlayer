@@ -32,7 +32,7 @@ val releaseAbis: List<String> = (findProperty("tmAbis") as String?)
     ?.split(",")
     ?.map { it.trim() }
     ?.filter { it.isNotEmpty() }
-    ?: listOf("armeabi-v7a", "arm64-v8a")
+    ?: listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
 // The build F-Droid makes from source, switched on by its recipe:
 //
@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.tmplayer"
+        applicationId = "com.veylora"
         // Android 6. The floor is the highest minSdk among the libraries (TDLib's tdl-coroutines,
         // Media3, nextlib, Compose, AndroidX and the Cast framework all declare 23), so older TVs
         // such as the Fire TV Stick 4K on Fire OS 6 (Android 7.1) and the Android 6 and 7 boxes
@@ -193,7 +193,8 @@ android {
 
     }
 
-    // Per-ABI APKs beside the universal one. This was tried and dropped once, on the grounds that
+    // The universal APK carries every ABI with complete native dependencies. Per-ABI APKs were
+    // used previously, on the grounds that
     // a viewer who takes the wrong file gets an install that fails at the first video rather than
     // at install time. That is not what happens: an APK whose native libraries match no ABI on the
     // device is refused by the package installer itself, with INSTALL_FAILED_NO_MATCHING_ABIS,
@@ -216,7 +217,7 @@ android {
             // Reading the task names at configuration time is what makes that possible; it is
             // also the one thing here that would need rethinking if the configuration cache is
             // ever switched on in gradle.properties.
-            isEnable = gradle.startParameter.taskNames.any { it.contains("Release") }
+            isEnable = false
             reset()
             include(*releaseAbis.toTypedArray())
             isUniversalApk = true

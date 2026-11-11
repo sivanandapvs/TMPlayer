@@ -553,6 +553,7 @@ fun TmMaterialTheme(
     dark: Boolean,
     /** Dark on a true black ground ([TmSchemes.Black]); only with [dark]. */
     black: Boolean = false,
+    liquidAmoled: Boolean = false,
     /** The accent colour, Telegram blue unless the viewer picked another. */
     accent: Accent = Accent.Default,
     /** The viewer's own colour as ARGB, used when [accent] is [Accent.Custom]. */
@@ -570,6 +571,7 @@ fun TmMaterialTheme(
             LocalContentColor provides scheme.onSurface,
             LocalDarkTheme provides dark,
             LocalPureBlack provides (dark && black),
+            LocalLiquidAmoled provides liquidAmoled,
         ) {
             ProvideFallbackFonts { ProvideStrings(content) }
         }

@@ -27,8 +27,8 @@ class PureBlackTest {
     private suspend fun rawTheme(): String? = data.data.first()[stringPreferencesKey("theme_choice")]
 
     @Test
-    fun `the theme offers System, Light and Dark, and the switch is off by default`() = runBlocking {
-        assertEquals(listOf("System", "Light", "Dark"), ThemeChoice.entries.map { it.name })
+    fun `the theme offers Liquid separately, and the switch is off by default`() = runBlocking {
+        assertEquals(listOf("System", "Light", "Dark", "LiquidAmoled"), ThemeChoice.entries.map { it.name })
         assertEquals(ThemeChoice.System, settings.themeChoice.first())
         assertFalse(settings.pureBlack.first())
     }
@@ -86,6 +86,7 @@ class PureBlackTest {
         assertFalse(pureBlackGround(ThemeChoice.System, pureBlack = true, systemDark = false))
         assertFalse(pureBlackGround(ThemeChoice.Light, pureBlack = true, systemDark = true))
         assertFalse(pureBlackGround(ThemeChoice.Dark, pureBlack = false, systemDark = true))
+        assertTrue(pureBlackGround(ThemeChoice.LiquidAmoled, pureBlack = false, systemDark = false))
     }
 
     @Test

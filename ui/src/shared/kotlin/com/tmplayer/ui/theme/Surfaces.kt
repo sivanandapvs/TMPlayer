@@ -72,6 +72,15 @@ object Focus {
  */
 val LocalOnFloating = staticCompositionLocalOf { false }
 
+/** Separate from Pure Black so its existing surfaces remain unchanged. */
+val LocalLiquidAmoled = staticCompositionLocalOf { false }
+
+object LiquidGlass {
+    const val FillAlpha = 0.88f
+    const val EdgeAlpha = 0.32f
+    val Edge = Color(0xFF72D8F5)
+}
+
 /** The role each floating thing is filled with, by what it is. */
 object FloatingTone {
     /** A dialog: a question, a prompt, the QR codes. */
@@ -102,7 +111,10 @@ object FloatingTone {
 /** The hairline round a floating surface, in the scheme's outline. */
 @Composable
 @ReadOnlyComposable
-fun floatingBorder(): BorderStroke = BorderStroke(Floating.Border, Tone.outline)
+fun floatingBorder(): BorderStroke = BorderStroke(
+    Floating.Border,
+    if (LocalLiquidAmoled.current) LiquidGlass.Edge.copy(alpha = LiquidGlass.EdgeAlpha) else Tone.outline,
+)
 
 /**
  * A panel the app draws itself as a floating surface: clipped to [shape], filled with [fill] and
@@ -112,4 +124,6 @@ fun floatingBorder(): BorderStroke = BorderStroke(Floating.Border, Tone.outline)
 fun Modifier.floatingSurface(
     fill: Color = FloatingTone.dialog,
     shape: Shape = Floating.DialogShape,
-): Modifier = clip(shape).background(fill).border(floatingBorder(), shape)
+): Modifier = clip(shape)
+    .background(if (LocalLiquidAmoled.current) fill.copy(alpha = LiquidGlass.FillAlpha) else fill)
+    .border(floatingBorder(), shape)

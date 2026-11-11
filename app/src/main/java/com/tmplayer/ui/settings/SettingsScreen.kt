@@ -2819,7 +2819,7 @@ internal fun SectionTitle(text: String) {
  * Light, dark or whatever the phone is set to, as three segments rather than three rows.
  *
  * A chosen segment carries a check mark as well as its word, and a third of a phone's width is not
- * much room, so the segments say only "System", "Light" and "Dark". The sentence explaining the
+ * much room, so each segment has a short label. The sentence explaining the
  * chosen one sits under the row, where it has the whole width to itself.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2836,7 +2836,7 @@ private fun ThemePicker(current: ThemeChoice, onPick: (ThemeChoice) -> Unit) {
                     // The word alone is ambiguous read aloud, so the spoken label is the sentence.
                     modifier = Modifier.semantics { contentDescription = choice.description },
                     label = {
-                        M3Text(choice.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        M3Text(if (choice == ThemeChoice.LiquidAmoled) "Liquid" else choice.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     },
                 )
             }

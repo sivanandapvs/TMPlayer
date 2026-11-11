@@ -223,8 +223,8 @@ fun TMPlayerTheme(content: @Composable () -> Unit) {
     val family = typeface.family()
     // A picked accent washes in over a moment rather than snapping (animateAccentRoles).
     val scheme = animateAccentRoles(
-        (if (touch) phoneScheme(dark, dynamic, black, accent) else TmSchemes.of(dark, black, accent))
-            .let { if (touch && dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) it else it.withCustomAccent(accent, customAccent, dark) }
+        (if (touch) phoneScheme(dark, dynamic && choice != ThemeChoice.LiquidAmoled, black, accent) else TmSchemes.of(dark, black, accent))
+            .let { if (touch && dynamic && choice != ThemeChoice.LiquidAmoled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) it else it.withCustomAccent(accent, customAccent, dark) }
             .highContrast(highContrast),
     )
 
@@ -255,6 +255,7 @@ fun TMPlayerTheme(content: @Composable () -> Unit) {
                 LocalContentColor provides scheme.onSurface,
                 LocalDarkTheme provides dark,
                 LocalPureBlack provides black,
+                LocalLiquidAmoled provides (choice == ThemeChoice.LiquidAmoled),
             ) {
                 UiScaled(scale) { ProvideStrings(content) }
             }

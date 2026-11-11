@@ -516,7 +516,7 @@ fun DesktopTheme(settings: SettingsStore, content: @Composable () -> Unit) {
     val customAccent by settings.customAccent.collectAsState(initial = null)
     val highContrast by settings.highContrast.collectAsState(initial = false)
     val typeface by settings.typeface.collectAsState(initial = com.tmplayer.data.AppTypeface.Default)
-    TmMaterialTheme(dark = dark, black = black, accent = accent, customAccent = customAccent, highContrast = highContrast, typeface = typeface) {
+    TmMaterialTheme(dark = dark, black = black, liquidAmoled = choice == ThemeChoice.LiquidAmoled, accent = accent, customAccent = customAccent, highContrast = highContrast, typeface = typeface) {
         // The big-screen mode (plan 8.7) sizes the whole window for a sofa's distance (TvScale).
         ProvideFocusVisibility { com.tmplayer.desktop.ui.ProvideInterfaceScale(scale, com.tmplayer.desktop.ui.BigScreen.on, content) }
     }

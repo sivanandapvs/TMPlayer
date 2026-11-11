@@ -38,3 +38,4 @@ private/
 !.dev.vars.example
 .env*
 !.env.example
+*.apk*

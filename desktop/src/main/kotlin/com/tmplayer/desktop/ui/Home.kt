@@ -173,7 +173,8 @@ fun HomePage(state: ShellState, chats: ChatListViewModel) {
             when (row) {
                 is HomeRow.Chat -> model.request(row.chatId)
                 is HomeRow.Recent -> model.requestRecent()
-                is HomeRow.Continue, is HomeRow.WatchLater, is HomeRow.NewEpisodes -> Unit
+                is HomeRow.Continue, is HomeRow.WatchLater, is HomeRow.NewEpisodes,
+                is HomeRow.TorBox, is HomeRow.Unified -> Unit
             }
         },
         onArtWanted = model::requestArt,
@@ -423,6 +424,8 @@ internal fun HomeRowsView(
                                     }
                                 }
                                 is HomeRow.Chat -> ShelfStrips(state, side, sizes, row.entries, { row.title }) { openSeries = it }
+                                is HomeRow.TorBox -> ShelfStrips(state, side, sizes, row.entries, { "TorBox ${row.source.name}" }) { openSeries = it }
+                                is HomeRow.Unified -> ShelfStrips(state, side, sizes, row.entries, { row.provider }) { openSeries = it }
                                 is HomeRow.Recent -> if (row.noneChosen) {
                                     com.tmplayer.ui.browse.HomeNoneChosenCard(start = side, end = side)
                                 } else {
@@ -508,6 +511,8 @@ private fun RowPage(
                         sizes.card to row.episodes.map { episode -> "n-${episode.item.id}" to @Composable { NewEpisodeCell(state, episode, titles) } },
                     )
                     is HomeRow.Chat -> shelfSections(state, sizes, fedEntries ?: (row.entries + SeriesShelf.arrange(row.more)), { row.title }, onOpenSeries)
+                    is HomeRow.TorBox -> shelfSections(state, sizes, row.entries, { "TorBox ${row.source.name}" }, onOpenSeries)
+                    is HomeRow.Unified -> shelfSections(state, sizes, row.entries, { row.provider }, onOpenSeries)
                     is HomeRow.Recent -> shelfSections(state, sizes, fedEntries ?: row.entries, { titles[it].orEmpty() }, onOpenSeries)
                 }
             }
@@ -742,7 +747,8 @@ private fun HomeRow.title(s: com.tmplayer.i18n.Messages, titles: Map<Long, Strin
 /** How many videos a row holds, as its "See all" says it; null when it cannot tell. */
 private fun HomeRow.countLabel(s: com.tmplayer.i18n.Messages): String? {
     val count = when (this) {
-        is HomeRow.Continue, is HomeRow.WatchLater, is HomeRow.Chat -> total
+        is HomeRow.Continue, is HomeRow.WatchLater, is HomeRow.Chat,
+        is HomeRow.TorBox, is HomeRow.Unified -> total
         is HomeRow.NewEpisodes -> episodes.size
         is HomeRow.Recent -> entries.size
     }

@@ -16,10 +16,11 @@ enum class ThemeChoice(private val labelText: () -> String, private val descript
     System({ L.themeSystem }, { L.themeSystemDetail }),
     Light({ L.themeLight }, { L.themeLightDetail }),
     Dark({ L.themeDark }, { L.themeDarkDetail }),
+    LiquidAmoled({ "Liquid AMOLED" }, { "Liquid AMOLED: true black with subtle glass surfaces" }),
     ;
 
     /** Whether this choice is drawn dark whatever the device says: Dark. */
-    val alwaysDark: Boolean get() = this == Dark
+    val alwaysDark: Boolean get() = this == Dark || this == LiquidAmoled
 
     /**
      * Whether the app is drawn dark under this choice, with [systemDark] the device's own setting
@@ -27,7 +28,7 @@ enum class ThemeChoice(private val labelText: () -> String, private val descript
      */
     fun isDark(systemDark: Boolean): Boolean = when (this) {
         Light -> false
-        Dark -> true
+        Dark, LiquidAmoled -> true
         System -> systemDark
     }
 
@@ -35,7 +36,7 @@ enum class ThemeChoice(private val labelText: () -> String, private val descript
      * Whether the Pure black switch is offered under this choice: wherever the app can be dark,
      * so System and Dark. Light hides it, since it changes nothing there.
      */
-    val offersPureBlack: Boolean get() = this != Light
+    val offersPureBlack: Boolean get() = this == System || this == Dark
 
     /** The one word shown in a segment, in the UI language. */
     val label: String get() = labelText()
@@ -54,6 +55,7 @@ enum class ThemeChoice(private val labelText: () -> String, private val descript
             System -> L.themeSystemTvDetail
             Light -> L.themeLightDetail
             Dark -> L.themeDarkDetail
+            LiquidAmoled -> "Liquid AMOLED: true black with subtle glass surfaces"
         }
 
     companion object {
@@ -76,7 +78,7 @@ enum class ThemeChoice(private val labelText: () -> String, private val descript
  * switch says, so turning Light back to System on a dark phone brings the black back.
  */
 fun pureBlackGround(choice: ThemeChoice, pureBlack: Boolean, systemDark: Boolean): Boolean =
-    pureBlack && choice.isDark(systemDark)
+    choice == ThemeChoice.LiquidAmoled || (pureBlack && choice.isDark(systemDark))
 
 /**
  * How large the whole interface is drawn, under Appearance as "Interface size" (CP59).
