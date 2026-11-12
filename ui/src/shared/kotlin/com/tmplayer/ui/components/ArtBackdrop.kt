@@ -198,12 +198,13 @@ internal fun rememberBackdropArt(source: BackdropSource, drawn: Int): BackdropAr
                 return@LaunchedEffect
             }
         }
-        val field = Thumbnails.backdrop(source.thumbnailFileId, source.miniThumbnail)
         art = when {
             full != null && full.width >= SHARP_MIN_WIDTH -> BackdropArt(picture = full)
-            full != null -> BackdropArt(picture = full, field = field)
-            field != null -> BackdropArt(field = field)
-            else -> art ?: BackdropArt()
+            // A completed request must not leave the loading field as the final artwork.
+            // A small real thumbnail is clearer without the extra blur; with only an inline
+            // preview, the generated cover is the deliberate final fallback.
+            full != null -> BackdropArt(picture = full)
+            else -> BackdropArt()
         }
     }
 

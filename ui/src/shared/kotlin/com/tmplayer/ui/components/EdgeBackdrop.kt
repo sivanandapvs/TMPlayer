@@ -144,7 +144,7 @@ fun EdgeBackdropOf(
                 // Blurred whenever it isn't the sharp picture itself: the field alone, or a real
                 // but small Telegram thumbnail, read as a loading placeholder rather than a small
                 // sharp picture sitting oddly on the page (user, 2026-10-31, the Home carousel).
-                val lowRes = picture != null && (standIn || picture.width < SHARP_MIN_WIDTH)
+                val lowRes = picture != null && standIn
                 // An upright picture (the online poster, for a title with no wide one) cropped to
                 // the wide frame showed a slice of it: it stands whole at the frame's height
                 // instead, over a soft copy of itself filling the rest.

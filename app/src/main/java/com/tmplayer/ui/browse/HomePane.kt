@@ -665,6 +665,7 @@ internal fun HomePane(
                                     VideoTile(
                                         // The name under the picture, then Telegram's facts; none on the picture.
                                         title = remember(item, strings) { continueCardTitle(item, strings) },
+                                        dense = touch,
                                         onClick = { onResume(record) },
                                         // The detail panel, as on every other tile here: it already
                                         // offers Resume, Start over and Mark watched for a video with

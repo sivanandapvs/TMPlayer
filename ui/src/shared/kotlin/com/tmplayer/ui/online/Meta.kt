@@ -442,27 +442,19 @@ fun MetaCredit(info: MetaInfo, modifier: Modifier = Modifier) {
 /**
  * A film's or show's name for the Home carousel: its title logo from TMDB where it has one (the
  * name drawn as a picture on a clear ground, [OnlineMetadata.logo]), else [text], the name set in
- * type. The logo is what is waited for: while it may still come the place is held, the name laid
- * out but not drawn and a logo shaped placeholder over it, so nothing jumps, and the logo fades in
- * there. The name is shown only once it is clear there is no logo (lookups off, no match, TMDB has
- * none, it could not be had or decoded) or after [LOGO_WAIT_MS]; a logo arriving later still takes
- * over from it. With lookups off or no match known, the name is there on the first frame and no
- * placeholder is ever drawn. A logo already known and
+ * type. The name is visible immediately while a logo is looked up or decoded; a later logo fades
+ * in without leaving the title area empty. A logo already known and
  * decoded (the carousel fetches its pages' logos ahead, [PrefetchTitleLogos]) is there on the
  * first frame. The picture is never the only way to the name: the carousel page carries the title
  * as its description, so a screen reader still says it.
  *
  * @param maxWidth the widest the logo may be; it keeps its own shape inside [maxWidth] by
  *   [maxHeight], set at the start (or the centre, by [alignment]) of that box.
- * @param settled true once it is known whether [meta] is all there will be: with no match then,
- *   the name is set at once rather than its place held for a logo that cannot come.
- * @param waitMs how long the name's place is held for a logo still on its way: the ceiling after
- *   which the name is set in type whatever is still coming.
- * @param skeletonHeight the placeholder's height where the caller's slot is already as tall as
- *   the logo (a title page's [com.tmplayer.ui.browse.TitleSlot]); unset, it takes the name's own
- *   height, so a carousel page never grows while it waits.
+ * [settled], [waitMs], and [skeletonHeight] remain for existing callers; title visibility no longer
+ * depends on a metadata or logo deadline.
  */
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun TitleArt(
     meta: MetaInfo?,
     maxWidth: androidx.compose.ui.unit.Dp,
@@ -485,11 +477,10 @@ fun TitleArt(
     }
     val url = answer?.url
     var logo by remember(url) { mutableStateOf(url?.let { Thumbnails.peekOnline(it, LOGO_PIXELS) }) }
-    var failed by remember(url) { mutableStateOf(false) }
     LaunchedEffect(url) {
         if (url == null || logo != null || online == null) return@LaunchedEffect
         val decoded = Thumbnails.online(url, LOGO_PIXELS, alpha = true) { online.image(url) }
-        if (decoded == null) failed = true else logo = decoded
+        if (decoded != null) logo = decoded
     }
     val shown = logo
     // Logos are drawn for dark grounds, white or near white as a rule, and a white one on a light
@@ -502,37 +493,20 @@ fun TitleArt(
         if (url == null || shown == null || bright != null) return@LaunchedEffect
         bright = withContext(Dispatchers.Default) { LogoTone.of(url, shown) }
     }
-    // How long the place is held for a logo still on its way, from when the page is first drawn.
-    var waited by remember { mutableStateOf(waitMs <= 0L) }
-    LaunchedEffect(Unit) {
-        if (waited) return@LaunchedEffect
-        kotlinx.coroutines.delay(waitMs)
-        waited = true
-    }
     val ink = Tone.text
     val light = Tone.background.luminance() > 0.5f
     val tint = if (light && bright == true) androidx.compose.ui.graphics.ColorFilter.tint(ink) else null
-    val noLogo = online == null || !enabled || failed || (answer != null && url == null) || (meta == null && settled)
     val step: Any = when {
         // On a light page a logo waits the few milliseconds for its verdict, so a white one is
         // never drawn white first.
         shown != null && (!light || bright != null) -> shown
-        shown == null && (noLogo || waited) -> TitleStep.Name
-        else -> TitleStep.Held
+        // A valid local title is always available while lookup, download or tone detection runs.
+        else -> TitleStep.Name
     }
     androidx.compose.animation.Crossfade(targetState = step, animationSpec = com.tmplayer.ui.theme.Motion.standard(), modifier = modifier, label = "titleArt") { picture ->
         when (picture) {
             is ImageBitmap -> LogoImage(picture, tint, maxWidth, maxHeight, alignment)
             TitleStep.Name -> text()
-            // The name laid out and not drawn, the place it would take, with a logo shaped
-            // placeholder over it; nothing a screen reader reads twice.
-            else -> Box(
-                Modifier.fillMaxWidth().then(if (skeletonHeight.isSpecified) Modifier.heightIn(min = skeletonHeight) else Modifier),
-                contentAlignment = alignment,
-            ) {
-                Box(Modifier.alpha(0f).clearAndSetSemantics {}) { text() }
-                LogoSkeleton(maxWidth, alignment, Modifier.matchParentSize())
-            }
         }
     }
 }
@@ -614,7 +588,7 @@ fun TitleLogoImage(
 }
 
 /** What [TitleArt] shows while it has no logo: the name, or the name's place held for one. */
-private enum class TitleStep { Name, Held }
+private enum class TitleStep { Name }
 
 /**
  * Fetches and decodes the title logos of [items] (each a video and whether its show is wanted),

@@ -143,6 +143,7 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -530,7 +531,12 @@ internal fun BrowseScreen(
     val touch = !FormFactor.isTv(LocalContext.current)
     // The phone's lists end clear of the floating bar (TouchNav), which their container already
     // lifts above the navigation bar.
-    val insets = if (touch) TouchInsets.clearing(touchShellClearance(withActions = true, rail = LocalTouchRail.current)) else TvInsets
+    val navigationInset = with(LocalDensity.current) {
+        androidx.compose.foundation.layout.WindowInsets.navigationBars.getBottom(this).toDp()
+    }
+    val insets = if (touch) TouchInsets.clearing(
+        touchShellClearance(withActions = true, rail = LocalTouchRail.current) + navigationInset,
+    ) else TvInsets
 
     // While a chip has the remote's focus, a list that changes under it (because OK picked that
     // chip) must not pull focus down to its first row: the viewer is still choosing.
