@@ -72,7 +72,7 @@ class TorBoxHomeViewModel(app: Application) : AndroidViewModel(app) {
                 var succeeded = false
                 for (source in TorBoxSource.entries) {
                     val page = try {
-                        withContext(Dispatchers.IO) { api.library(key, refresh = true, source = source) }
+                        withContext(Dispatchers.IO) { api.completeLibrary(key, source) }
                     } catch (cancel: CancellationException) {
                         throw cancel
                     } catch (_: Exception) {
@@ -80,9 +80,12 @@ class TorBoxHomeViewModel(app: Application) : AndroidViewModel(app) {
                         continue
                     }
                     succeeded = true
+                    val stillProcessing = merged.values.filter { it.source == source && it.torrentId in page.pendingTorrentIds }
                     merged.keys.removeAll { it.startsWith("${source.path}:") }
                     page.files.filter { it.ready }.forEach { merged[it.key] = it }
-                    withContext(Dispatchers.IO) { runCatching { vault.writeLibrary(key, source, page) } }
+                    stillProcessing.forEach { merged.putIfAbsent(it.key, it) }
+                    val snapshot = page.copy(files = merged.values.filter { it.source == source })
+                    withContext(Dispatchers.IO) { runCatching { vault.writeLibrary(key, source, snapshot) } }
                     mutableItems.value = mediaItems(merged.values)
                 }
                 // A successful empty result is meaningful (the user removed all their cloud files).

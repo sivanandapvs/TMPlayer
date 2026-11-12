@@ -305,6 +305,7 @@ internal fun BrowseScreen(
     onMessage: (String) -> Unit = {},
     /** Where "Videos in all chats" asks: Telegram, or the promo fixture's demo results. */
     videoSearch: VideoSearchSource = VideoSearchSource.Telegram,
+    torBoxSearchItems: () -> List<MediaItem> = { emptyList() },
     /** Remembers a search worth keeping, for the recent searches. */
     onSearched: (suspend (String) -> Unit)? = null,
 ) {
@@ -378,7 +379,7 @@ internal fun BrowseScreen(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                GlobalSearchViewModel(videoSearch, onSearched) as T
+                GlobalSearchViewModel(videoSearch, onSearched, known = { com.tmplayer.online.KnownMedia.all() + torBoxSearchItems() }) as T
         },
     )
     val searchState by search.state.collectAsState()

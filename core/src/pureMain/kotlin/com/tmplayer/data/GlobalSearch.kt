@@ -595,7 +595,7 @@ object GlobalSearch {
     ): List<MediaItem> {
         if (query.isEmpty) return emptyList()
         return known.asSequence()
-            .filter { KidsLock.allows(allowed, it.chatId) }
+            .filter { it.identity is MediaIdentity.TorBox || KidsLock.allows(allowed, it.chatId) }
             .distinctBy { it.id }
             .filter { matchesLocally(it, query, names(it)) }
             .toList()

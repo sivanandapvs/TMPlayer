@@ -1,0 +1,10 @@
+Build date: 2026-11-12 07:40:51 +05:30
+Git commit: 710478c6f245646416af93e6f81077f58c6135ee
+Version name: 1.28.1
+Version code: 1280199
+Package ID: com.veylora
+APK size: 94964192 bytes
+SHA-256: F3F1BF93BB31B0025C92ABEC8578277AD5F900ED32FEE8CE1E46DCF666BA5788
+Included ABIs: arm64-v8a, armeabi-v7a, x86, x86_64
+Tests: 89 targeted core TorBox/MediaName/GlobalSearch tests, 12 UI GlobalSearchViewModel tests, 8 Android TorBox tests; all passed. Earlier full core run had two unrelated failures: ScaleCpuTest and CacheDirRenameTest.
+Build: :app:assembleDebug successful; APK signature v1/v2 verified; phone and TV launchers verified

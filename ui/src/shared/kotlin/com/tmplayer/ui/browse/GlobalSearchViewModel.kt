@@ -211,7 +211,7 @@ class GlobalSearchViewModel(
         // takes its chats out of them at once.
         viewModelScope.launch {
             ChatGate.browsing.collect { allowed ->
-                if (allowed != null) _state.update { s -> s.copy(groups = s.groups.filter { g -> g.copies.all { KidsLock.allows(allowed, it.chatId) } }) }
+                if (allowed != null) _state.update { s -> s.copy(groups = s.groups.filter { g -> g.copies.all { it.identity is com.tmplayer.data.MediaIdentity.TorBox || KidsLock.allows(allowed, it.chatId) } }) }
             }
         }
     }

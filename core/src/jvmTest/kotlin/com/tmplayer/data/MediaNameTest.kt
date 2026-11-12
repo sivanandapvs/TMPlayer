@@ -8,6 +8,15 @@ import org.junit.Test
 
 class MediaNameTest {
 
+    @Test fun releaseSitePrefixDoesNotPolluteTitleOrEraseLegitimateWords() {
+        val file = "1TamilMV.style - Apocalypse Z New World (2026) HQ HDRip - 1080p - x264 - [Tam + Tel + Hin + Eng] - (DD+5.1 - 640Kbps) - 3.3GB - ESub.mkv"
+        assertEquals("Apocalypse Z New World", parse(file).title)
+        assertEquals("Movie Name", parse("Movie.Name.2024.1080p.WEB-DL.x265.DDP5.1.mkv").title)
+        assertEquals("Show Name", parse("Show.Name.S01E02.1080p.WEB-DL.x265.mkv").title)
+        assertEquals("The TamilMV Story", parse("The TamilMV Story (2026).mkv").title)
+        assertEquals("Apocalypse Z New World", parse(parse(file).title).title)
+    }
+
     // Pinned rather than read off the clock, so a test that passes today still passes in 2030.
     private fun parse(name: String) = MediaName.parse(name, maxYear = 2027)
 

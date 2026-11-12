@@ -1965,6 +1965,7 @@ private fun Root() {
         when (current) {
             is Screen.Chats -> {
                 BrowseScreen(
+                    torBoxSearchItems = { torBoxHomeViewModel.items.value },
                     // Held on its own loading state until the jump has been decided, so the
                     // launch looks like one screen loading rather than two screens fighting.
                     state = if (autoOpenDecided) chatsState else UiState.Loading(),
@@ -2075,7 +2076,10 @@ private fun Root() {
                     homeRefreshing = homeViewModel.refreshing.collectAsStateWithLifecycle().value,
                     // Home's own rows alone (HX44): the chat list no longer needs a manual sync
                     // piggybacked on this, since TDLib's own updates already keep it live.
-                    onRefreshHome = { homeViewModel.refreshInPlace() },
+                    onRefreshHome = {
+                        homeViewModel.refreshInPlace()
+                        torBoxHomeViewModel.refresh(force = true)
+                    },
                     onSetMediaWatched = { item, chatTitle, watched -> setWatched(item, chatTitle, watched) },
                     onMessage = toast,
                     onSearched = { settings.addRecentSearch(it) },

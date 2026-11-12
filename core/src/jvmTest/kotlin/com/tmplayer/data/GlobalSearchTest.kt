@@ -7,6 +7,16 @@ import org.junit.Assert.assertTrue
 
 class GlobalSearchTest {
 
+    @Test fun torBoxFilenameRemainsSearchableWithTelegramChatFilter() {
+        val name = "1TamilMV.style - Apocalypse Z New World (2026) HQ HDRip - 1080p - x264.mkv"
+        val cloud = video(0, 0, name).copy(
+            identity = MediaIdentity.TorBox(com.tmplayer.torbox.TorBoxSource.Torrents, 42, 7),
+        )
+        assertEquals("Apocalypse Z New World", SeriesShelf.tileTitle(cloud))
+        assertEquals(listOf(cloud), GlobalSearch.localVideos(listOf(cloud), q("Apocalypse Z"), allowed = setOf(123L)))
+        assertEquals(listOf(cloud), GlobalSearch.localVideos(listOf(cloud), q("1080p"), allowed = setOf(123L)))
+    }
+
     private fun video(
         chatId: Long,
         messageId: Long,

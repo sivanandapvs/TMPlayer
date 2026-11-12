@@ -523,7 +523,7 @@ object MediaName {
             }
         }
         // A fansub group's tag, "[SubsPlease] Show - 02", is a signature in brackets.
-        val unsigned = withoutSymbols.replace(GROUP_TAG, "")
+        val unsigned = withoutSymbols.replace(GROUP_TAG, "").replace(RELEASE_SITE_PREFIX, "")
         return unsigned
             .replace(HANDLE) {
                 handleOf(it.value, unsigned.substring(0, it.range.first), unsigned.substring(it.range.last + 1))
@@ -805,6 +805,12 @@ object MediaName {
      */
     private val SITE = Regex(
         """\b(?:www\.)?[a-z0-9][a-z0-9-]{2,}\.(?:com|net|org|to|me|cc|io|xyz|site|link|club|ws|sbs|top|pw|info|biz)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Known release signatures only, and only when followed by a separator before a title. */
+    private val RELEASE_SITE_PREFIX = Regex(
+        """^\s*(?:1tamilmv(?:\.style)?|tamilmv(?:\.style)?|tamilblasters)(?:\s*[-:|]\s*|[._]+)""",
         RegexOption.IGNORE_CASE,
     )
 

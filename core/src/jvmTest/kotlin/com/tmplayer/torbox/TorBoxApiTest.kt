@@ -15,6 +15,50 @@ class TorBoxApiTest {
     }
     private fun response(text: String) = HttpResponse(200, body = text.toByteArray())
 
+    @Test fun completeLibraryFollowsServerLimitedPagesAndKeepsEveryFile() = runTest {
+        val offsets = mutableListOf<Int>()
+        val api = TorBoxApi(HttpTransport { request ->
+            val offset = Regex("offset=(\\d+)").find(request.url)!!.groupValues[1].toInt()
+            offsets += offset
+            val rows = (offset until minOf(offset + 2, 5)).joinToString(",") { id ->
+                """{"id":$id,"download_finished":true,"files":[{"id":1,"name":"Movie.$id.MKV"},{"id":2,"name":"Movie.$id.WMV"},{"id":3,"name":"notes.zip"}]}"""
+            }
+            response("""{"success":true,"data":[$rows]}""")
+        })
+        val result = api.completeLibrary(key)
+        assertEquals(listOf(0, 2, 4, 5), offsets)
+        assertEquals(10, result.files.size)
+        assertEquals(10, result.files.map { it.key }.distinct().size)
+        val cached = TorBoxApi.cachedPage(TorBoxApi.cachePage(result, "owner", TorBoxSource.Torrents), "owner", TorBoxSource.Torrents)
+        assertEquals(result.files.toSet(), cached!!.files.toSet())
+    }
+
+    @Test fun oneTorrentKeepsSeparateMoviesAndEpisodeQualityIdentities() {
+        val root = TorBoxApi.parse("""{"data":[{"id":42,"download_finished":true,"files":[
+            {"id":7,"name":"First.Movie.2024.1080p.mkv"},
+            {"id":8,"name":"Second.Movie.2025.720p.mp4"},
+            {"id":9,"name":"Show.Name.S01E02.720p.mkv"},
+            {"id":10,"name":"Show.Name.S01E02.1080p.mkv"},
+            {"id":10,"name":"Show.Name.S01E02.1080p.mkv"},
+            {"id":11,"name":"archive.zip"}
+        ]}]}""")!!
+        val files = TorBoxApi.parsePage(root, 0)!!.files
+        assertEquals(setOf(7L, 8L, 9L, 10L), files.map { it.fileId }.toSet())
+        assertEquals(4, files.size)
+        val items = files.map { it.media().toMediaItem() }
+        assertEquals(4, items.map { it.id }.toSet().size)
+        assertEquals(2, items.count { it.parsedName.episode == 2 && it.parsedName.season == 1 })
+        assertTrue(items.all { (it.identity as com.tmplayer.data.MediaIdentity.TorBox).transferId == 42L })
+    }
+
+    @Test fun processingMetadataIsReportedWithoutClaimingAnEmptyLibrary() {
+        val root = TorBoxApi.parse("""{"data":[{"id":42,"download_finished":false,"download_state":"metaDL"}]}""")!!
+        val page = TorBoxApi.parsePage(root, 0)!!
+        assertEquals(1, page.recordCount)
+        assertEquals(setOf(42L), page.pendingTorrentIds)
+        assertTrue(page.files.isEmpty())
+    }
+
     @Test fun libraryUsesBoundedPagesAndPreservesRealFileIds() = runTest {
         val fake = Fake(response("""{"success":true,"data":[{"id":42,"download_finished":true,"created_at":"2026-11-01","files":[{"id":0,"name":"Example.S01E02.1080p.mkv","size":5000},null,{"id":1,"name":"readme.txt"},{"id":{},"name":"broken.mp4"}]}]}"""))
         val page = TorBoxApi(fake).library(key)

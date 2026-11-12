@@ -523,6 +523,7 @@ object SeriesShelf {
         val renamed = VideoCorrections.current[item.id]?.title
         val title = when {
             renamed != null -> renamed
+            item.identity is MediaIdentity.TorBox -> item.parsedName.title.ifBlank { item.title }
             item.versions.size > 1 || item.parts.size > 1 || item.isJoined -> filmTitle(item)
             item.fileName.isBlank() || item.genericFileName -> item.title
             else -> item.fileTileTitle ?: item.title

@@ -115,6 +115,6 @@ class TorBoxCredentials(context: Context) : TorBoxVault {
     companion object {
         private const val ALIAS = "veylora.torbox.v1"
         private val LOCK = Any()
-        private const val MAX_CACHE_BYTES = 8 * 1024 * 1024
+        private const val MAX_CACHE_BYTES = 32 * 1024 * 1024
     }
 }
