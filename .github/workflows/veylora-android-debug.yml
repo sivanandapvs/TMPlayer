@@ -82,6 +82,32 @@ jobs:
           restore-keys: |
             veylora-ffmpeg-${{ runner.os }}-
 
+      - name: Install FFmpeg build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Retry apt metadata refresh and package installation for transient mirror/DNS errors.
+          for attempt in 1 2 3; do
+            if sudo apt-get update; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "apt-get update failed after 3 attempts" >&2
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+          for attempt in 1 2 3; do
+            if sudo apt-get install --yes --no-install-recommends curl make meson ninja-build nasm pkg-config patch; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "FFmpeg dependency installation failed after 3 attempts" >&2
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+
       - name: Verify JDK and Android SDK
         shell: bash
         run: |
