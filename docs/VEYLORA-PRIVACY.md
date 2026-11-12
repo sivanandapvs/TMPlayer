@@ -11,9 +11,10 @@ Connecting sends the API key to TorBox over HTTPS to validate the account. The k
 with AES-256/GCM using Android Keystore and saved in the app's private no-backup directory.
 It is not included in the app's settings export. There is no plaintext-storage fallback.
 
-Account information and cloud-library file names are requested directly from TorBox. The first library page for each provider is cached locally with Keystore-backed encryption,
-bounded to 8 MB per provider. Other loaded pages stay in memory in this build. Refresh and paging are requested by the viewer; there is no
-automatic cloud-library polling. Provider availability depends on the TorBox account and plan.
+Account information and cloud-library file names are requested directly from TorBox. Available
+pages are cached per provider with Keystore-backed encryption, bounded to 32 MiB per provider.
+Home refreshes the provider library on entry and while actively used, with a throttle; manual Home
+refresh forces a new request. Provider availability depends on the TorBox account and plan.
 
 Playing requests a temporary download URL from TorBox, then sends playback requests to that URL's
 HTTPS host. TorBox requires the API key in the download-link request's query as well as the

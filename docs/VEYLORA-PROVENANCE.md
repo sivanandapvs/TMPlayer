@@ -12,8 +12,8 @@ There is no project-wide license in that repository's tracked root. Any future s
 requires a compatible license or permission from the relevant rights holders.
 
 The TorBox implementation uses the official contract at https://api.torbox.app/openapi.json
-and https://api-docs.torbox.app/. Only the documented account, torrent list and download-link
-endpoints are called. TorBox is a third-party service and its name remains its own.
+and https://api-docs.torbox.app/. It calls documented account, torrent, Usenet and web-download
+list and download-link endpoints. TorBox is a third-party service and its name remains its own.
 
 The Veylora V/play symbol is newly drawn vector geometry. Sources and exports are in
 art/veylora. scripts/build-veylora-assets.py reproduces Android and desktop assets using Pillow
@@ -21,8 +21,10 @@ and fonttools. The wordmark outlines are rendered from the locally installed Seg
 no font file is redistributed. The Android API 23 vectors use solid facets; PNG exports have
 gradients. The adaptive mark stays within the launcher safe area.
 
-The Android application ID, Kotlin packages, existing storage names and signing setup remain
-unchanged. A package migration is a separate decision after a successful build and approval.
+The Android application ID is now `com.veylora` (the preview variant uses `com.veylora.test`).
+Kotlin packages remain under `com.tmplayer`; existing storage names and signing setup remain.
+The new application ID installs separately from upstream `com.tmplayer` and does not migrate its
+app data automatically.
 Upstream historical release data, attribution, package-manager identities and existing protocol
 identifiers must not be rewritten as if Veylora originally published them.
 
