@@ -45,6 +45,8 @@ import org.openani.mediamp.source.MediaData
 import org.openani.mediamp.source.UriMediaData
 import java.io.File
 import java.io.IOException
+import java.io.RandomAccessFile
+import java.util.zip.ZipFile
 import java.util.concurrent.ConcurrentHashMap
 
 /** The episodes either side of the one playing, and what to call them: see [EpisodeNeighbours]. */
@@ -181,6 +183,10 @@ class TelegramPlayerMedia(
     @Volatile
     private var downloadFile: File? = null
 
+    /** Extracted ZIP entry owned by this playback session; never the source archive. */
+    @Volatile
+    private var extractedArchiveVideo: File? = null
+
     /** The TDLib file id as this session knows it, once [open] has asked. */
     @Volatile
     private var playingId: Int = item.fileId
@@ -188,6 +194,11 @@ class TelegramPlayerMedia(
     override val isDownload: Boolean get() = downloadFile != null || OfflineDownloads.isDownloading(playingId)
 
     override suspend fun open(): MediaData {
+        // ZIP documents are fetched whole and their selected video is extracted to a private temp
+        // file. MPV cannot seek inside a compressed ZIP member as if it were a normal file.
+        if (com.tmplayer.data.Archives.kindOf(item.fileName) == com.tmplayer.data.ArchiveKind.Zip) {
+            return openZipArchive()
+        }
         // An item rebuilt from a saved record (Continue watching, Downloads) carries no word on
         // the chat's setting, so Telegram is asked once, off the path to the first frame.
         if (item.canBeSaved) {
@@ -245,6 +256,63 @@ class TelegramPlayerMedia(
                 if (lowStorageFileId == fileId) lowStorageHold?.let { LowStorageStreams.revoke(fileId, it) }
             },
         )
+    }
+
+    /**
+     * Downloads a Telegram ZIP document, resolves its video using the shared bounded ZIP parser,
+     * and extracts only that entry. The output path is generated locally (never from the archive
+     * entry name), so path traversal entries cannot escape the private temporary directory.
+     */
+    private suspend fun openZipArchive(): MediaData = withContext(Dispatchers.IO) {
+        ensureRoom()
+        val fileId = item.fileId
+        playingId = fileId
+        watchDownload(fileId)
+        if (Td.localFileAvailability(fileId) != LocalFileAvailability.Complete) fetchWhole(fileId)
+        val archivePath = Td.localFilePath(fileId)
+            ?: throw IOException("Telegram finished downloading the ZIP, but its local file path is unavailable.")
+        val archive = File(archivePath)
+        if (!archive.isFile || archive.length() < 22L) throw IOException("The downloaded ZIP is missing or incomplete.")
+        val selected = RandomAccessFile(archive, "r").use { input ->
+            com.tmplayer.data.ZipEntries.video(archive.length()) { offset, length ->
+                if (offset < 0 || offset > input.length() || length.toLong() > input.length() - offset) {
+                    throw IOException("ZIP range is outside the downloaded archive.")
+                }
+                val bytes = ByteArray(length)
+                input.seek(offset)
+                input.readFully(bytes)
+                bytes
+            }
+        }
+        val suffix = selected.name.substringAfterLast('.', "mkv").lowercase()
+            .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) } ?: "mkv"
+        val entryFile = File.createTempFile("tmplayer-zip-video-", ".$suffix")
+        try {
+            ZipFile(archive).use { zip ->
+                val entry = zip.getEntry(selected.name) ?: throw IOException("The selected video entry is missing from the ZIP.")
+                if (entry.isDirectory || entry.size != selected.size) throw IOException("The selected ZIP video has inconsistent size metadata.")
+                zip.getInputStream(entry).use { source ->
+                    entryFile.outputStream().buffered().use { target ->
+                        val buffer = ByteArray(1024 * 1024)
+                        var total = 0L
+                        while (true) {
+                            val count = source.read(buffer)
+                            if (count < 0) break
+                            total += count
+                            if (total > selected.size) throw IOException("The ZIP video expanded beyond its declared size.")
+                            target.write(buffer, 0, count)
+                        }
+                        if (total != selected.size) throw IOException("The extracted ZIP video is incomplete.")
+                    }
+                }
+            }
+            extractedArchiveVideo = entryFile
+            _downloaded.value = 1f
+            UriMediaData(entryFile.absolutePath)
+        } catch (failure: Throwable) {
+            entryFile.delete()
+            throw failure
+        }
     }
 
     // A video cut into byte pieces ([SplitPieces]), played as one stream of their bytes joined.
@@ -607,6 +675,8 @@ class TelegramPlayerMedia(
         watcher?.cancel()
         openedFromDisk?.let(ActiveStreams::closed)
         openedFromDisk = null
+        extractedArchiveVideo?.let { runCatching { it.delete() } }
+        extractedArchiveVideo = null
     }
 
     private companion object {

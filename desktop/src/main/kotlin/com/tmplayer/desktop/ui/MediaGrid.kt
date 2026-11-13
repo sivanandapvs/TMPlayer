@@ -432,16 +432,54 @@ fun MediaGridPage(state: ShellState, chat: ChatSummary) {
                 loadingMore = content.loadingMore,
                 footerSlow = { SlowAnswerLine(content.items.size, onRetry = model::retryMore) },
                 scrollLabel = { key -> entryByKey[key]?.let { com.tmplayer.ui.browse.ScrollLabels.video(it, shownSort, s) } },
-                // A chat lists its videos only: compressed files are not shown (user, 2026-10-19).
-                footer = if (!content.moreFailed) null else {
+                // ZIP documents are listed below the playable videos and can be opened by the
+                // desktop player. Other archive formats and split volumes remain informational.
+                footer = if (!content.moreFailed && content.archives.isEmpty()) null else {
                     {
                         Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            // The last page failed: said, with Try again, not a listing that stops short.
                             if (content.moreFailed) {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                                     Text(s.gridMoreFailed, color = Tone.muted)
                                     Spacer(Modifier.width(12.dp))
                                     OutlinedButton(onClick = model::retryMore) { Text(s.commonTryAgain) }
+                                }
+                            }
+                            content.archives.forEach { archive ->
+                                val canPlayZip = archive.kind == com.tmplayer.data.ArchiveKind.Zip && !archive.volume &&
+                                    archive.fileName.lowercase().endsWith(".zip")
+                                Row(
+                                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(archive.fileName.ifBlank { archive.kind.label }, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(
+                                            if (canPlayZip) "ZIP archive · extract and play video" else archive.reason,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Tone.muted,
+                                        )
+                                    }
+                                    if (canPlayZip) {
+                                        OutlinedButton(onClick = {
+                                            state.openPlayer(
+                                                MediaItem(
+                                                    chatId = archive.chatId,
+                                                    messageId = archive.messageId,
+                                                    fileId = archive.fileId,
+                                                    title = archive.fileName,
+                                                    sizeBytes = archive.sizeBytes,
+                                                    durationSec = 0,
+                                                    mimeType = "application/zip",
+                                                    thumbnailFileId = 0,
+                                                    miniThumbnail = null,
+                                                    date = archive.date,
+                                                    fileName = archive.fileName,
+                                                ),
+                                                startFromBeginning = true,
+                                            )
+                                        }) { Text("Play ZIP") }
+                                    }
                                 }
                             }
                         }
