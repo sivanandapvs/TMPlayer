@@ -61,6 +61,8 @@ The Kotlin namespace remains `com.tmplayer`. The changed application ID installs
 
 Android playback continues to use TMPlayer's Media3/NextLib player, track selectors, subtitles, seeking, hardware/software decode choices and external-player support. TorBox adds an HTTPS source to that player; it does not import TorBox-Cinema's player. The repository's [FFmpeg build script](scripts/build-media3ext.sh) and [decoder patch](scripts/media3ext/tmplayer-decoders.patch) are inherited TMPlayer work. Veylora's Android workflow builds and checks that custom NextLib AAR. An ordinary local debug build can use the Maven AAR **without** the extra patched decoders. Desktop MPV support is inherited from TMPlayer and is not a completed TorBox desktop integration. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
+Android also supports direct playback of Stored videos inside raw split ZIP archives named `.zip.001`, `.zip.002`, and so on. See [split ZIP playback and its limits](docs/SPLIT-ZIP.md).
+
 ## Technical architecture
 
 ```mermaid

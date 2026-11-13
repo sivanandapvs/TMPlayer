@@ -1680,23 +1680,19 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
 
         override fun source(): Pair<com.tmplayer.cast.CastSource, String>? {
             val client = castClient ?: return null
+            // The cast HTTP server can read the same ZIP entry DataSource and serve its video bytes.
+            val zip = zipVideoSource
             val joined = joinedSource
-            val uri = joined ?: downloadedVideo?.uri() ?: tdFileUri(fileId)
+            val uri = zip ?: joined ?: downloadedVideo?.uri() ?: tdFileUri(fileId)
             val length = when {
+                zip != null -> zip.getQueryParameter("size")?.toLongOrNull() ?: 0L
                 joined != null -> joined.getQueryParameters("s").sumOf { it.toLongOrNull() ?: 0L }
                 downloadedVideo != null -> downloadedVideo?.length() ?: 0L
                 else -> fileSizeBytes
             }
             if (length <= 0) return null
-            val factory = DefaultDataSource.Factory(
-                this@PlayerActivity,
-                JoinedDataSource.Factory(
-                    TdDataSource.Factory(client),
-                    DefaultDataSource.Factory(this@PlayerActivity, TdDataSource.Factory(client)),
-                    ::leftPiece,
-                ),
-            )
-            val name = mediaFileName.ifBlank { mediaTitle }.ifBlank { "video" }
+            val factory = DefaultDataSource.Factory(this@PlayerActivity, zipAwareFactory(client))
+            val name = zip?.lastPathSegment ?: mediaFileName.ifBlank { mediaTitle }.ifBlank { "video" }
             return DataSourceCastSource(factory, uri, length) to name
         }
 
@@ -1793,6 +1789,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             showScrubPictures()
         }
         joinedSource = null
+        zipVideoSource = null
         piecesNotice = null
         piecesIncomplete = false
         piecesNoticeShown = false
@@ -1984,14 +1981,16 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             val delaysRead = async { if (hasMessage()) runCatching { settings.syncDelays(chatId, messageId) }.getOrDefault(SyncDelays()) else null }
             // A video cut into byte pieces plays as the one file it was, joined: none of its
             // pieces is a video on its own, whatever the download index or the cache holds of one.
-            val joined = mayBeJoined() && findPieces(session.client)
+            val zip = com.tmplayer.data.SplitZip.parse(currentArchive()) != null
+            if (zip && !prepareZip(session.client)) return@launch
+            val joined = !zip && mayBeJoined() && findPieces(session.client)
             if (joined && !prepareJoined(session.client)) return@launch
             // The download index first. Every way into this screen passes here, the next episode
             // and autoplay included, so a downloaded episode plays from its file however it was
             // reached.
-            val downloaded = if (joined) null else LocalDownloads.videoFor(settings, chatId, messageId)
+            val downloaded = if (joined || zip) null else LocalDownloads.videoFor(settings, chatId, messageId)
             downloadedVideo = downloaded
-            if (joined) {
+            if (joined || zip) {
                 // Decided for every piece in [prepareJoined].
             } else if (downloaded != null) {
                 downloadComplete = true
@@ -2139,11 +2138,11 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             built.addListener(playerListener)
             // A plain file for a download, which the default data source reads directly; the TDLib
             // stream for everything else, carrying its type so the right reader is tried first.
-            val source = cloudUrl?.let(android.net.Uri::parse) ?: joinedSource ?: downloadedVideo?.uri()
+            val source = cloudUrl?.let(android.net.Uri::parse) ?: zipVideoSource ?: joinedSource ?: downloadedVideo?.uri()
                 ?: tdFileUri(fileId, streamType(mediaMime, mediaFileName))
             // A stream also holds the Wi-Fi up while it plays, which matters once the screen is
             // off and the sound plays on ([PlaybackService]); a file on the disk needs only the CPU.
-            val local = if (joinedSource != null) joinedAllLocal else downloadedVideo != null
+            val local = if (joinedSource != null || zipVideoSource != null) joinedAllLocal else downloadedVideo != null
             built.setWakeMode(if (local) C.WAKE_MODE_LOCAL else C.WAKE_MODE_NETWORK)
             // Built out of sight (the next episode, or a stream opened again, behind the
             // notification): no video decoding until somebody can see it.
@@ -3703,11 +3702,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
                         this,
                         // A video joined from byte pieces reads each piece the way a whole file
                         // is read: TDLib's stream, or the disk for a downloaded piece.
-                        JoinedDataSource.Factory(
-                            TdDataSource.Factory(client),
-                            DefaultDataSource.Factory(this, TdDataSource.Factory(client)),
-                            ::leftPiece,
-                        ),
+                        zipAwareFactory(client),
                     )).setTransferListener(byteCounter),
                     extractors,
                 )
@@ -5007,6 +5002,116 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
 
     /** The joined stream ([joinedUri]) once [prepareJoined] has built it, for [startPlayback]. */
     private var joinedSource: android.net.Uri? = null
+
+    /** Selected video inside a raw split ZIP; the joined archive itself is never a media item. */
+    private var zipVideoSource: android.net.Uri? = null
+
+    private fun currentArchive() = com.tmplayer.data.ArchiveFile(
+        chatId, messageId, fileId, mediaFileName, fileSizeBytes, 0, com.tmplayer.data.ArchiveKind.Zip,
+        volume = true,
+    )
+
+    private fun zipAwareFactory(client: TdlClient): androidx.media3.datasource.DataSource.Factory {
+        val direct = TdDataSource.Factory(client)
+        val joined = JoinedDataSource.Factory(direct, DefaultDataSource.Factory(this, direct), ::leftPiece)
+        return ZipVideoDataSource.Factory(joined)
+    }
+
+    /** Discover every ZIP volume in the chat, then resolve its video through the joined range source. */
+    private suspend fun prepareZip(client: TdlClient): Boolean {
+        val selected = com.tmplayer.data.SplitZip.parse(currentArchive()) ?: return false
+        val repository = ChatRepository(client)
+        val found = LinkedHashMap<Long, com.tmplayer.data.ArchiveFile>()
+        found[messageId] = selected.file
+        runCatching { settings.downloadsNow() }.getOrDefault(emptyList())
+            .filter { it.chatId == chatId && it.fileName != null }
+            .forEach { record ->
+                val name = record.fileName ?: return@forEach
+                val file = com.tmplayer.data.ArchiveFile(record.chatId, record.messageId, record.fileId,
+                    name, record.sizeBytes, 0, com.tmplayer.data.ArchiveKind.Zip, volume = true)
+                if (com.tmplayer.data.SplitZip.parse(file)?.key == selected.key) found[file.messageId] = file
+            }
+        var verifiedSearch = false
+        for (query in listOf(selected.base.substringBeforeLast('.'), "")) {
+            verifiedSearch = false
+            var cursors = com.tmplayer.data.MediaCursors()
+            for (pageNumber in 0 until 250) {
+                val page = runCatching { repository.mediaPage(chatId, cursors, query = query, topicId = 0) }.getOrNull() ?: break
+                page.archives.filter { it.chatId == chatId && com.tmplayer.data.SplitZip.parse(it)?.key == selected.key }
+                    .forEach { found[it.messageId] = it }
+                if (page.endReached) { verifiedSearch = true; break }
+                if (page.cursors == cursors) break
+                cursors = page.cursors
+            }
+            if (verifiedSearch && found.size > 1) break
+            if (query.isEmpty()) break
+        }
+        if (!verifiedSearch && found.size <= 1) {
+            showError("Could not verify all ZIP volumes in this chat", retryable = true)
+            return false
+        }
+        val archive = com.tmplayer.data.SplitZip.group(selected, found.values.toList())
+        if (!archive.complete) {
+            val issue = buildList {
+                if (archive.missing.isNotEmpty()) add("Missing ZIP volumes: ${archive.missing.joinToString { it.toString().padStart(3, '0') }}")
+                if (archive.duplicates.isNotEmpty()) add("Duplicate ZIP volumes: ${archive.duplicates.joinToString { it.toString().padStart(3, '0') }}")
+                if (archive.volumes.any { it.number == 0 }) add("ZIP volumes must start at 001")
+            }.joinToString(". ")
+            showError(issue, retryable = false)
+            return false
+        }
+        val sources = ArrayList<Pair<android.net.Uri, Long>>()
+        val streamed = ArrayList<MediaItem>()
+        var local = true
+        for (volume in archive.volumes) {
+            val file = volume.file
+            val download = LocalDownloads.videoFor(settings, file.chatId, file.messageId)
+            if (download != null) {
+                val length = download.length() ?: 0L
+                if (length <= 0) { showError("ZIP volume ${volume.number} is empty", retryable = false); return false }
+                sources += download.uri() to length
+                continue
+            }
+            val id = runCatching { Td.currentFileId(file.chatId, file.messageId, file.fileId) }.getOrDefault(file.fileId)
+            val td = client.getFile(id).valueOrNull
+            val length = td?.let { if (it.size > 0) it.size else it.expectedSize }?.takeIf { it > 0 } ?: file.sizeBytes
+            if (length <= 0) { showError("ZIP volume ${volume.number} has no known size", retryable = true); return false }
+            if (Td.localFileAvailability(id) != LocalFileAvailability.Complete) local = false
+            sources += tdFileUri(id) to length
+            streamed += MediaItem(file.chatId, file.messageId, id, file.fileName, length, 0, "application/zip", 0, null, file.date, fileName = file.fileName)
+        }
+        val archiveSize = runCatching { sources.fold(0L) { total, source -> Math.addExact(total, source.second) } }.getOrNull()
+        if (archiveSize == null || sources.any { it.second <= 0 }) { showError("Invalid ZIP volume sizes", retryable = false); return false }
+        if (!local) {
+            if (!allowedOnThisConnection(LocalFileAvailability.Partial)) return false
+            if (!makeRoomForThisVideo(LocalFileAvailability.Partial)) return false
+        }
+        holdPieces(streamed.map { it.fileId })
+        boundPieces(streamed)
+        val joined = joinedUri(sources)
+        val result = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.tmplayer.data.ZipEntries.video(archiveSize, zipRange(zipAwareFactory(client), joined))
+            }
+        }.getOrElse {
+            stopPieceDownloads()
+            holdPieces(emptyList())
+            letGoOfPieceBounds()
+            showError(it.message ?: "Could not read ZIP", retryable = false)
+            return false
+        }
+        if (result.method != 0) {
+            stopPieceDownloads()
+            holdPieces(emptyList())
+            letGoOfPieceBounds()
+            showError("Deflate ZIP video cannot be streamed with seeking yet", retryable = false)
+            return false
+        }
+        joinedAllLocal = local
+        fileSizeBytes = result.size
+        zipVideoSource = zipVideoUri(joined, result)
+        return true
+    }
 
     /** Whether every piece plays from the disk, a download or a whole cached file. */
     private var joinedAllLocal = false
@@ -6355,7 +6460,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
         override fun sideways() = sheetGoesSideways()
         override fun phoneEntries() = PlayerMenu.phoneEntries(
             pictureInPicture = hasPictureInPicture(),
-            openInAnotherApp = savable == true,
+            openInAnotherApp = savable == true && zipVideoSource == null && com.tmplayer.data.SplitZip.parse(currentArchive()) == null,
             saveToDownloads = canSaveToDownloads(),
             markWatched = hasMessage(),
             paused = isPaused(),
@@ -6374,7 +6479,7 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             pictureInPicture = hasPictureInPicture(),
             saveToDownloads = canSaveToDownloads(),
             markWatched = hasMessage(),
-            openInAnotherApp = savable == true,
+            openInAnotherApp = savable == true && zipVideoSource == null && com.tmplayer.data.SplitZip.parse(currentArchive()) == null,
             paused = isPaused(),
             bookmarks = hasMessage(),
             chapters = chapters.isNotEmpty(),
@@ -8343,7 +8448,8 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
             val downloaded = local?.length()
                 ?: runCatching { Td.localDownloadedBytes(fileId) }.getOrDefault(0L)
             val state = ExternalPlayer.readiness(availability, downloaded)
-            if (state == ExternalPlayer.Readiness.Nothing) return@launch
+            if (state == ExternalPlayer.Readiness.Nothing || zipVideoSource != null ||
+                com.tmplayer.data.SplitZip.parse(currentArchive()) != null) return@launch
             // Offered on the failure another app fixes, and left off the one it does not: a stream
             // that would not start has nothing on disk worth handing anywhere.
             if (retryable || !offerOtherApp) return@launch
@@ -8450,6 +8556,10 @@ class PlayerActivity : FragmentActivity(), TrackPickerHost {
      * than not offering this at all.
      */
     fun openInAnotherApp() {
+        if (zipVideoSource != null || com.tmplayer.data.SplitZip.parse(currentArchive()) != null) {
+            showGestureFeedback("Split ZIP video needs playback inside TMPlayer")
+            return
+        }
         // The menus leave the line off; this catches the held key, which has no menu to leave it off.
         if (savable != true) {
             showGestureFeedback(if (savable == null) CHECKING_FEEDBACK else NOT_SAVABLE_FEEDBACK)

@@ -846,6 +846,23 @@ fun MediaGridScreen(
                                 )
                             }
                     }
+                    archiveItems(
+                        list.archives.filter { com.tmplayer.data.SplitZip.parse(it) != null },
+                        false,
+                        if (feed.isEmpty()) firstItem else null,
+                    ) { archive ->
+                        if (archive.kind == com.tmplayer.data.ArchiveKind.Zip && archive.volume) {
+                            onPlay(
+                                MediaItem(
+                                    archive.chatId, archive.messageId, archive.fileId, archive.fileName,
+                                    archive.sizeBytes, 0, "application/zip", 0, null, archive.date,
+                                    fileName = archive.fileName,
+                                ),
+                            )
+                        } else {
+                            com.tmplayer.ui.components.showMessage(context, archive.reason)
+                        }
+                    }
                     // The next page on its way: a row of placeholder tiles where it will land.
                     if (list.loadingMore) {
                         item(key = "more-skeleton", span = { GridItemSpan(maxLineSpan) }, contentType = "more-skeleton") {

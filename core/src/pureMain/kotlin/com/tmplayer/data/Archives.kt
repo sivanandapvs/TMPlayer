@@ -66,11 +66,11 @@ object Archives {
     fun merge(listed: List<ArchiveFile>, more: List<ArchiveFile>): List<ArchiveFile> =
         if (more.isEmpty()) listed else (listed + more).distinctBy { it.messageId }.sortedByDescending { it.messageId }
 
-    private val ZIP = Regex("""\.zip$|\.zip\.\d{1,4}$|\.z\d{2}$""")
+    private val ZIP = Regex("""\.zip$|\.zip\.\d+$|\.z\d{2}$""")
     private val RAR = Regex("""\.rar$|\.rar\.\d{1,4}$|\.r\d{2}$""")
     private val SEVEN_ZIP = Regex("""\.7z$|\.7z\.\d{1,4}$""")
     private val OTHER = Regex("""\.(tar|gz|tgz|bz2|xz|zst)$|\.(tar|gz|tgz|bz2|xz|zst)\.\d{1,4}$""")
-    private val VOLUME = Regex("""\.(7z|zip|rar|tar|gz|tgz|bz2|xz|zst)\.\d{1,4}$|\.part\d{1,4}\.rar$|\.[rz]\d{2}$""")
+    private val VOLUME = Regex("""\.zip\.\d+$|\.(7z|rar|tar|gz|tgz|bz2|xz|zst)\.\d{1,4}$|\.part\d{1,4}\.rar$|\.[rz]\d{2}$""")
     private val ZIP_TYPES = setOf("application/zip", "application/x-zip-compressed")
     private val RAR_TYPES = setOf("application/x-rar-compressed", "application/vnd.rar", "application/x-rar")
 }

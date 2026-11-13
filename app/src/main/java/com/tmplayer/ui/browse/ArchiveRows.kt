@@ -1,8 +1,5 @@
 package com.tmplayer.ui.browse
 
-// Not shown since 2026-10-19 (user: a chat lists its videos only); kept for when an archive can be
-// opened in place (a stored ZIP, CP85).
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,7 +32,7 @@ private fun ArchivesHeading(count: Int, noVideos: Boolean) {
         if (noVideos) {
             Text(L.browseNoPlayableVideos, style = MaterialTheme.typography.titleMedium, color = Tone.text)
         }
-        Text(L.gridArchivesHeading(count), style = MaterialTheme.typography.bodyMedium, color = Tone.muted)
+        Text("Split ZIP archives ($count)", style = MaterialTheme.typography.bodyMedium, color = Tone.muted)
     }
 }
 
@@ -44,30 +41,36 @@ private fun ArchivesHeading(count: Int, noVideos: Boolean) {
  * reason again as a message, so a press on a television is answered, never a dead key.
  */
 @Composable
-private fun ArchiveRow(file: ArchiveFile, onExplain: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun ArchiveRow(file: ArchiveFile, onOpen: (ArchiveFile) -> Unit, modifier: Modifier = Modifier) {
     val size = file.sizeBytes.takeIf { it > 0 }?.let { Translator.messages.formatter.bytes(it) }
     TvChoiceRow(
         title = file.fileName.ifBlank { file.kind.label },
-        detail = file.reason,
+        detail = if (file.kind == com.tmplayer.data.ArchiveKind.Zip && file.volume) "Open video inside split ZIP" else file.reason,
         trailing = listOfNotNull(file.kind.label, size).joinToString(" · "),
         icon = TmIcons.Archive,
         modifier = modifier,
-        onClick = { onExplain(file.reason) },
+        onClick = { onOpen(file) },
     )
 }
+
+/** One row per archive, led by its first known volume for a stable playback identity. */
+private fun displayArchives(archives: List<ArchiveFile>): List<ArchiveFile> =
+    archives.groupBy { file -> com.tmplayer.data.SplitZip.parse(file)?.key ?: (file.chatId to file.messageId) }
+        .values.map { group -> group.minBy { com.tmplayer.data.SplitZip.parse(it)?.number ?: Int.MAX_VALUE } }
 
 /** The archives as full width grid lines; [first] goes on the first when there is nothing above. */
 internal fun LazyGridScope.archiveItems(
     archives: List<ArchiveFile>,
     noVideos: Boolean,
     first: FocusRequester?,
-    onExplain: (String) -> Unit,
+    onOpen: (ArchiveFile) -> Unit,
 ) {
     if (archives.isEmpty()) return
-    item(key = "archives-heading", span = { GridItemSpan(maxLineSpan) }) { ArchivesHeading(archives.size, noVideos) }
-    archives.forEachIndexed { index, file ->
+    val shown = displayArchives(archives)
+    item(key = "archives-heading", span = { GridItemSpan(maxLineSpan) }) { ArchivesHeading(shown.size, noVideos) }
+    shown.forEachIndexed { index, file ->
         item(key = "archive-${file.messageId}", span = { GridItemSpan(maxLineSpan) }) {
-            ArchiveRow(file, onExplain, if (index == 0 && first != null) Modifier.focusRequester(first) else Modifier)
+            ArchiveRow(file, onOpen, if (index == 0 && first != null) Modifier.focusRequester(first) else Modifier)
         }
     }
 }
@@ -77,13 +80,14 @@ internal fun LazyListScope.archiveItems(
     archives: List<ArchiveFile>,
     noVideos: Boolean,
     first: FocusRequester?,
-    onExplain: (String) -> Unit,
+    onOpen: (ArchiveFile) -> Unit,
 ) {
     if (archives.isEmpty()) return
-    item(key = "archives-heading") { ArchivesHeading(archives.size, noVideos) }
-    archives.forEachIndexed { index, file ->
+    val shown = displayArchives(archives)
+    item(key = "archives-heading") { ArchivesHeading(shown.size, noVideos) }
+    shown.forEachIndexed { index, file ->
         item(key = "archive-${file.messageId}") {
-            ArchiveRow(file, onExplain, if (index == 0 && first != null) Modifier.focusRequester(first) else Modifier)
+            ArchiveRow(file, onOpen, if (index == 0 && first != null) Modifier.focusRequester(first) else Modifier)
         }
     }
 }
