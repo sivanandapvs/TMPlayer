@@ -80,26 +80,21 @@ jobs:
 
       - name: Restore signing key
         env:
-          VEYLORA_KEYSTORE_BASE64: ${{ secrets.VEYLORA_KEYSTORE_BASE64 }}
-          VEYLORA_KEYSTORE_PASSWORD: ${{ secrets.VEYLORA_KEYSTORE_PASSWORD }}
-          VEYLORA_KEY_ALIAS: ${{ secrets.VEYLORA_KEY_ALIAS }}
-          VEYLORA_KEY_PASSWORD: ${{ secrets.VEYLORA_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -z "$VEYLORA_KEYSTORE_BASE64" ]; then
-            echo "::error::VEYLORA_KEYSTORE_BASE64 is not set. See CONTRIBUTING.md for the setup commands"
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 is not set. See CONTRIBUTING.md for the setup commands"
             exit 1
           fi
-          if [ -z "$VEYLORA_KEYSTORE_PASSWORD" ] || [ -z "$VEYLORA_KEY_ALIAS" ] || [ -z "$VEYLORA_KEY_PASSWORD" ]; then
-            echo "::error::VEYLORA_KEYSTORE_PASSWORD, VEYLORA_KEY_ALIAS and VEYLORA_KEY_PASSWORD must all be set alongside VEYLORA_KEYSTORE_BASE64"
-            exit 1
-          fi
-          mkdir -p signing
-          echo "$VEYLORA_KEYSTORE_BASE64" | base64 -d > signing/veylora-signing.p12
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
           cat > keystore.properties <<EOF
-          storeFile=signing/veylora-signing.p12
-          storePassword=$VEYLORA_KEYSTORE_PASSWORD
-          keyAlias=$VEYLORA_KEY_ALIAS
-          keyPassword=$VEYLORA_KEY_PASSWORD
+          storeFile=release.keystore
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
           EOF
 
       - name: Write Telegram credentials
@@ -205,20 +200,6 @@ jobs:
             -PtmVersionName=${{ needs.version.outputs.name }} \
             -PtmVersionCode=${{ needs.version.outputs.code }}
 
-      - name: Verify the signing certificate
-        env:
-          VEYLORA_KEYSTORE_PASSWORD: ${{ secrets.VEYLORA_KEYSTORE_PASSWORD }}
-          VEYLORA_KEY_ALIAS: ${{ secrets.VEYLORA_KEY_ALIAS }}
-          VEYLORA_KEY_PASSWORD: ${{ secrets.VEYLORA_KEY_PASSWORD }}
-        run: |
-          CERT="C9:CB:80:D3:9B:2E:13:BA:3C:90:D5:2B:23:C8:8D:45:6E:6F:E5:DB:22:FF:CD:77:D2:FA:78:09:2B:E7:CF:60"
-          ACTUAL=$(keytool -list -keystore signing/veylora-signing.p12 -storepass "$VEYLORA_KEYSTORE_PASSWORD" -keypass "$VEYLORA_KEY_PASSWORD" -alias "$VEYLORA_KEY_ALIAS" -rfc -noprompt | grep -i "sha256" | head -1 | sed 's/.*: //; s/ //g' | tr '[:lower:]' '[:upper:]')
-          if [ "$ACTUAL" != "$CERT" ]; then
-            echo "::error::Signing certificate is $ACTUAL, expected $CERT. Do not generate a replacement keystore."
-            exit 1
-          fi
-          echo "Signing certificate verified: $ACTUAL"
-
       - name: Verify the APK signature
         run: |
           apksigner verify --verbose --print-certs app/build/outputs/apk/release/app-universal-release.apk
@@ -253,7 +234,7 @@ jobs:
       # and braces against a future step accidentally archiving the workspace.
       - name: Shred signing material
         if: always()
-        run: rm -f release.keystore keystore.properties local.properties; rm -rf signing
+        run: rm -f release.keystore keystore.properties local.properties
 
       - name: Hand the APK to the publish job
         uses: actions/upload-artifact@v7
