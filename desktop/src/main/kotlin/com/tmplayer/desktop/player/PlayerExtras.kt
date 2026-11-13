@@ -42,7 +42,7 @@ object ScreenshotFiles {
             .take(MAX_NAME)
             .trim()
             .trimEnd('.', ' ')
-        return safe.ifBlank { "Veylora" }
+        return safe.ifBlank { "TMPlayer" }
     }
 
     /** 1-02-03 for an hour or more, 02-03 below one. */
