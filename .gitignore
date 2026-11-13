@@ -9,10 +9,7 @@ local.properties
 # Signing
 *.keystore
 *.jks
-*.p12
-*.pfx
 keystore.properties
-signing/
 
 # IDE
 .idea/
