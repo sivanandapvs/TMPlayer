@@ -12,9 +12,7 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
-// Optional signing configuration. Credentials and keystore paths are supplied locally
-// through the gitignored keystore.properties file; never store signing fingerprints,
-// passwords, or keystore material in tracked source files.
+// Optional release signing: create keystore.properties (gitignored) to enable
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
