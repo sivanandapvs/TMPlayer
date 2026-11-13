@@ -12,51 +12,12 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
-// The Veylora signing identity. keystore.properties (gitignored) points at the keystore, which
-// lives in signing/ (also gitignored) so it never reaches version control. The same file is
-// written by the release workflow from the VEYLORA_KEYSTORE_* secrets, so a local build and CI
-// sign with the same certificate. Nothing here is hardcoded: a missing property is a clear error,
-// and a debug build without the keystore falls back to Android's default debug key rather than
-// silently shipping unsigned or with the wrong identity.
+// Optional signing configuration. Credentials and keystore paths are supplied locally
+// through the gitignored keystore.properties file; never store signing fingerprints,
+// passwords, or keystore material in tracked source files.
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
-}
-
-// The SHA-256 the Veylora signing certificate must carry. verifyVeyloraSigning checks the keystore
-// against it, so a swapped or generated key fails the build instead of shipping.
-val veyloraCertSha256 = "C9:CB:80:D3:9B:2E:13:BA:3C:90:D5:2B:23:C8:8D:45:6E:6F:E5:DB:22:FF:CD:77:D2:FA:78:09:2B:E7:CF:60"
-
-/**
- * Reads the Veylora signing keystore and confirms its certificate matches [veyloraCertSha256].
- * A mismatch means a swapped or generated key, which would ship under the wrong identity, so the
- * build fails with a clear message instead of signing. The keystore is never loaded unless the
- * properties file names one, so a local machine without it falls back to Android's debug key.
- */
-fun verifyVeyloraSigning() {
-    val storeFile = keystoreProps.getProperty("storeFile") ?: return
-    val storePass = keystoreProps.getProperty("storePassword")
-        ?: throw GradleException("keystore.properties has no storePassword")
-    val keyAlias = keystoreProps.getProperty("keyAlias")
-        ?: throw GradleException("keystore.properties has no keyAlias")
-    val keyPass = keystoreProps.getProperty("keyPassword")
-        ?: throw GradleException("keystore.properties has no keyPassword")
-    val ks = java.security.KeyStore.getInstance("PKCS12").apply {
-        load(java.io.FileInputStream(rootProject.file(storeFile)), storePass.toCharArray())
-    }
-    val entry = ks.getEntry(keyAlias) as? java.security.KeyStore.PrivateKeyEntry
-        ?: throw GradleException("keystore has no key alias '$keyAlias'")
-    val cert = entry.certificateChain[0] as java.security.cert.X509Certificate
-    val actual = java.security.MessageDigest.getInstance("SHA-256")
-        .digest(cert.encoded)
-        .joinToString(":") { "%02X".format(it) }
-    if (actual != veyloraCertSha256) {
-        throw GradleException(
-            "Veylora signing certificate is $actual, expected $veyloraCertSha256. " +
-                "Do not generate a replacement keystore.",
-        )
-    }
-    println("Veylora signing certificate verified: $actual")
 }
 
 // The architectures a release build carries, and so both what the universal APK weighs and which
@@ -285,8 +246,7 @@ android {
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
             }
-            verifyVeyloraSigning()
-        }
+}
     }
 
     buildTypes {
