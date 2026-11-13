@@ -1,4 +1,4 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+﻿import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -466,12 +466,12 @@ compose.desktop {
         }
         nativeDistributions {
             targetFormats(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.Msi, TargetFormat.Exe)
-            packageName = "TMPlayer"
+            packageName = "Veylora"
             // jpackage wants a plain x.y.z. The deb and rpm (not published) take the release's own;
             // the MSI and macOS's CFBundleVersion take the installer version, below.
             packageVersion = desktopVersion.removePrefix("v").substringBefore('-').substringBefore('+')
-            vendor = "TMPlayer"
-            description = "Unofficial Telegram media player"
+            vendor = "Veylora"
+            description = "Veylora - Premium media player"
             copyright = "GPL-3.0-or-later"
             licenseFile.set(rootProject.file("LICENSE"))
             appResourcesRootDir.set(legalResources)
@@ -518,19 +518,19 @@ compose.desktop {
                 }
             }
             windows {
-                iconFile.set(packagingDir.file("icons/tmplayer.ico"))
+                iconFile.set(packagingDir.file("icons/veylora.ico"))
                 // Start menu folder, desktop shortcut, installed under %LOCALAPPDATA% without an
                 // administrator prompt. The upgrade code never changes: it is what lets a newer
                 // MSI replace an older one instead of installing beside it.
                 menu = true
-                menuGroup = "TMPlayer"
+                menuGroup = "Veylora"
                 shortcut = true
                 perUserInstall = true
                 // %LOCALAPPDATA%\TMPlayer App, not %LOCALAPPDATA%\TMPlayer: that one is where the
                 // app keeps its sign in, settings and cache, and jpackage's MSI deletes its whole
                 // install folder on uninstall, which every upgrade runs first (issue #7). One level:
                 // jpackage cannot make a per user MSI into a nested folder such as Programs\TMPlayer.
-                installationPath = "TMPlayer App"
+                installationPath = "Veylora App"
                 dirChooser = false
                 upgradeUuid = "6f1d3c0e-2b8a-4b7e-9d2c-7a1e5f4c3b21"
                 // The ProductVersion that orders a test version between the release before it and
@@ -556,7 +556,10 @@ if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
         .configureEach {
             freeArgs.addAll(
                 "--resource-dir",
-                layout.projectDirectory.dir("packaging/windows").asFile.absolutePath,
+                "C:\\Users\\PVSSIV~1\\DOCUME~1\\GitHub\\TMPlayer\\desktop\\PACKAG~1\\windows",
             )
         }
 }
+
+
+
