@@ -246,7 +246,7 @@ android {
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
             }
-}
+        }
     }
 
     buildTypes {
