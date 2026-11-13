@@ -264,6 +264,9 @@ class TelegramPlayerMedia(
      * entry name), so path traversal entries cannot escape the private temporary directory.
      */
     private suspend fun openZipArchive(): MediaData = withContext(Dispatchers.IO) {
+        if (!Td.maySave(item.chatId, item.messageId)) {
+            throw IOException("This chat restricts saving content, so its ZIP archive cannot be extracted for playback.")
+        }
         ensureRoom()
         val fileId = item.fileId
         playingId = fileId
@@ -283,6 +286,9 @@ class TelegramPlayerMedia(
                 input.readFully(bytes)
                 bytes
             }
+        }
+        if (selected.size > 100L * 1024 * 1024 * 1024 || selected.size > archive.length() * 1000L) {
+            throw IOException("The ZIP video is too large or has an unsafe compression ratio.")
         }
         val suffix = selected.name.substringAfterLast('.', "mkv").lowercase()
             .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) } ?: "mkv"
