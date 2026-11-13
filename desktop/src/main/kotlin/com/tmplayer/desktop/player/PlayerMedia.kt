@@ -265,6 +265,7 @@ class TelegramPlayerMedia(
      */
     private suspend fun openZipArchive(): MediaData = withContext(Dispatchers.IO) {
         if (!Td.maySave(item.chatId, item.messageId)) {
+            _savable.value = false
             throw IOException("This chat restricts saving content, so its ZIP archive cannot be extracted for playback.")
         }
         ensureRoom()
@@ -610,6 +611,7 @@ class TelegramPlayerMedia(
     }
 
     override suspend fun localFile(): File? {
+        extractedArchiveVideo?.takeIf { it.isFile }?.let { return it }
         // One piece's file is not the video: nothing to hand another app.
         if (joinedItem != null) return null
         downloadFile?.let { return it }
