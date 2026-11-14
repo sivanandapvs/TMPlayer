@@ -15,7 +15,7 @@ TMPlayer's existing Telegram library, search, playback, navigation and local med
 | Telegram | Existing TDLib-based media access and phone/TV interface; developer-supplied Telegram app credentials are required for sign-in. |
 | TorBox | Torrent, Usenet and web-download list endpoints; playable video files in Home and local search; file handoff to the existing player. |
 | Playback | Existing Android Media3/NextLib engine, audio/subtitle controls, seeking and local progress; TorBox requests a fresh HTTPS link. |
-| Packaging | `com.veylora` debug/release identity; separate `com.veylora.test` preview variant; four-ABI universal debug APK. |
+| Packaging | `app.veylora.player` debug/release identity; separate `app.veylora.player.test` preview variant; four-ABI universal debug APK. |
 
 ## What Changed in Veylora
 
@@ -51,9 +51,9 @@ Android displays **Veylora** with a new V/play mark, launcher assets, TV banner,
 
 | Variant | Application ID | Notes |
 | --- | --- | --- |
-| Debug and release | `com.veylora` | Current `defaultConfig`; debug uses Android debug signing. |
-| Preview | `com.veylora.test` | Release-derived test install with `-test` version suffix. |
-| Promo | `com.veylora.promo` | Debug-derived demo/screenshot variant. |
+| Debug and release | `app.veylora.player` | Current `defaultConfig`; debug uses Android debug signing. |
+| Preview | `app.veylora.player.test` | Release-derived test install with `-test` version suffix. |
+| Promo | `app.veylora.player.promo` | Debug-derived demo/screenshot variant. |
 
 The Kotlin namespace remains `com.tmplayer`. The changed application ID installs separately from upstream `com.tmplayer` and does not automatically migrate upstream app data. Upstream update checks and support links are disabled in this development build.
 
@@ -85,7 +85,7 @@ The earlier [integration map and handoff notes](docs/VEYLORA-INTEGRATION.md) pro
 | --- | --- | --- |
 | Telegram | TDLib access, authentication, library and streaming | Fork/CI credential configuration; provider-aware mixed Home and cloud session separation. |
 | TorBox | No TorBox provider | Account connection, encrypted snapshots, file discovery, Home/search integration and file-ID playback handoff. |
-| Application identity | TMPlayer branding and `com.tmplayer` | Veylora assets and `com.veylora`; `.test` preview and `.promo` variants. |
+| Application identity | TMPlayer branding and `com.tmplayer` | Veylora assets and `app.veylora.player`; `.test` preview and `.promo` variants. |
 | Multimedia | Media3/NextLib, FFmpeg build scripts, Android player; desktop MPV | TorBox HTTPS playback in Android and CI checks for the custom FFmpeg AAR. |
 | UI | Phone/TV navigation, Home, search and details | TorBox settings and Home cards, provider labels and Veylora branding. |
 | Build | Gradle Android and desktop infrastructure | Veylora Android workflow, identity/launcher checks and four-ABI universal debug build. |
@@ -117,7 +117,7 @@ TorBox API keys and library snapshots are encrypted locally. Playback sends the 
 | Before 9 Nov 2026 | TMPlayer foundation at upstream base `b4e93bf9`: Telegram, UI, player and build system. | [Original TMPlayer](https://github.com/dracu-lah/TMPlayer) |
 | 9 Nov 2026 | Veylora branding, TorBox API/account groundwork, encrypted cache and player recovery; Android CI and custom FFmpeg workflow started. | [`90f983df`](https://github.com/sivanandapvs/TMPlayer/commit/90f983df), [`62d19de7`](https://github.com/sivanandapvs/TMPlayer/commit/62d19de7), [`0dd490ed`](https://github.com/sivanandapvs/TMPlayer/commit/0dd490ed) |
 | 10 Nov 2026 | Provider-specific identities, mixed Recently added feed, TorBox player handoff and Home/series fixes. | [`3b2176b4`](https://github.com/sivanandapvs/TMPlayer/commit/3b2176b4), [`e224afbf`](https://github.com/sivanandapvs/TMPlayer/commit/e224afbf), [`9a20cd27`](https://github.com/sivanandapvs/TMPlayer/commit/9a20cd27) |
-| 11 Nov 2026 | `com.veylora` identity and CI build configuration corrected. | [`a0777938`](https://github.com/sivanandapvs/TMPlayer/commit/a0777938), [`d45b6a31`](https://github.com/sivanandapvs/TMPlayer/commit/d45b6a31) |
+| 11 Nov 2026 | `app.veylora.player` identity and CI build configuration corrected. | [`a0777938`](https://github.com/sivanandapvs/TMPlayer/commit/a0777938), [`d45b6a31`](https://github.com/sivanandapvs/TMPlayer/commit/d45b6a31) |
 | 12 Nov 2026 | CI FFmpeg dependency retry committed. The current working tree additionally contains uncommitted pagination, cache, filename, search and manual-refresh fixes, with local tests and a universal debug APK. | [`710478c6`](https://github.com/sivanandapvs/TMPlayer/commit/710478c6); local changes are not yet committed |
 
 No branch commit establishes a Veylora-authored TDLib source patch; TDLib-related changes here are app configuration and coexistence with cloud playback.
