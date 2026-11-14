@@ -111,8 +111,8 @@ jobs:
           APK="dist/Veylora-universal.apk"
           apksigner verify --verbose --print-certs "$APK"
           PACKAGE="$(apkanalyzer manifest application-id "$APK")"
-          if [ "$PACKAGE" != "com.veylora" ]; then
-            echo "::error::Expected package com.veylora, got $PACKAGE"
+          if [ "$PACKAGE" != "app.veylora.player" ]; then
+            echo "::error::Expected package app.veylora.player, got $PACKAGE"
             exit 1
           fi
           SHA="$(sha256sum "$APK" | awk '{print toupper($1)}')"
