@@ -43,3 +43,8 @@ private/
 *.dll
 *.exe
 *.msi
+
+# Veylora signing credentials
+*.jks
+*.keystore
+keystore.properties
