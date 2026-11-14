@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.veylora"
+        applicationId = "app.veylora.player"
         // Android 6. The floor is the highest minSdk among the libraries (TDLib's tdl-coroutines,
         // Media3, nextlib, Compose, AndroidX and the Cast framework all declare 23), so older TVs
         // such as the Fire TV Stick 4K on Fire OS 6 (Android 7.1) and the Android 6 and 7 boxes
