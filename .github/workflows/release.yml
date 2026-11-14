@@ -8,9 +8,8 @@ name: Release
 # signing key, and keeping it off the push-to-main path means an ordinary commit, or a pull
 # request from a stranger, can never reach it.
 #
-# One tag makes one GitHub release with a deliberately short list in it: the universal Android
-# APK, the Windows MSI, the macOS DMG (Apple Silicon, a preview), the Linux AppImage and the Linux tarball (which the AUR PKGBUILD builds
-# from), and nothing else. Each platform builds in its own job; the last job gathers them and
+# One tag makes one GitHub release with the universal Android APK, Windows MSI and TV wrappers.
+# Android and Windows build in their own jobs; the last job gathers their outputs and
 # publishes. GitHub attaches the source archives to every release by itself and shows each file's
 # SHA-256 beside it, so the licence, the notices and the nextlib and mediamp sources are links in
 # the notes and there is no checksum file.
@@ -263,79 +262,6 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-  # The AppImage and the tarball, built and self-tested by the same composite action CI runs on
-  # every push. Ubuntu 24.04, pinned: the bundled TDLib and libmpv need glibc 2.38 to run the
-  # self-test, and the image should not move under a release.
-  desktop-linux:
-    name: Desktop (Linux)
-    needs: version
-    runs-on: ubuntu-24.04
-    # The Telegram credentials are secrets of this environment.
-    environment: release
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Write Telegram credentials
-        env:
-          TG_API_ID: ${{ secrets.TG_API_ID }}
-          TG_API_HASH: ${{ secrets.TG_API_HASH }}
-          OPENSUBTITLES_API_KEY: ${{ secrets.OPENSUBTITLES_API_KEY }}
-          MSONE_GATEWAY_KEY: ${{ secrets.MSONE_GATEWAY_KEY }}
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-          # Optional: without it a detail page shows the provider's own score alone.
-          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
-          # Optional: the desktop's own Sentry project (tmplayer-desktop), else the phone's DSN.
-          # With neither, the desktop ships without crash reporting and never offers the switch.
-          SENTRY_DSN_DESKTOP: ${{ secrets.SENTRY_DSN_DESKTOP }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          if [ -z "$TG_API_ID" ]; then
-            echo "::error::TG_API_ID is not set, so the released app would not be able to sign in"
-            exit 1
-          fi
-          if [ -z "$SENTRY_DSN_DESKTOP" ] && [ -z "$SENTRY_DSN" ]; then
-            echo "::notice::Neither SENTRY_DSN_DESKTOP nor SENTRY_DSN is set. This desktop build ships without crash reporting."
-          elif [ -z "$SENTRY_DSN_DESKTOP" ]; then
-            echo "::notice::SENTRY_DSN_DESKTOP is not set. This desktop build sends its crash reports to the Android project (SENTRY_DSN)."
-          fi
-          cat > local.properties <<EOF
-          TG_API_ID=$TG_API_ID
-          TG_API_HASH=$TG_API_HASH
-          OPENSUBTITLES_API_KEY=$OPENSUBTITLES_API_KEY
-          MSONE_GATEWAY_KEY=$MSONE_GATEWAY_KEY
-          TMDB_API_KEY=$TMDB_API_KEY
-          OMDB_API_KEY=$OMDB_API_KEY
-          SENTRY_DSN_DESKTOP=$SENTRY_DSN_DESKTOP
-          SENTRY_DSN=$SENTRY_DSN
-          EOF
-
-      - name: Package and self-test
-        uses: ./.github/actions/desktop-linux
-        with:
-          version: ${{ needs.version.outputs.name }}
-
-      - name: Shred credentials
-        if: always()
-        run: rm -f local.properties
-
-      - name: Hand the AppImage, its .zsync and the tarball to the publish job
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-linux
-          path: dist/*
-          retention-days: 3
-          if-no-files-found: error
-
   desktop-windows:
     name: Desktop (Windows)
     needs: version
@@ -401,75 +327,6 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
-  desktop-macos:
-    name: Desktop (macOS)
-    needs: version
-    runs-on: macos-26
-    environment: release
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Write Telegram credentials
-        env:
-          TG_API_ID: ${{ secrets.TG_API_ID }}
-          TG_API_HASH: ${{ secrets.TG_API_HASH }}
-          OPENSUBTITLES_API_KEY: ${{ secrets.OPENSUBTITLES_API_KEY }}
-          MSONE_GATEWAY_KEY: ${{ secrets.MSONE_GATEWAY_KEY }}
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-          # Optional: without it a detail page shows the provider's own score alone.
-          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
-          # Optional: the desktop's own Sentry project (tmplayer-desktop), else the phone's DSN.
-          # With neither, the desktop ships without crash reporting and never offers the switch.
-          SENTRY_DSN_DESKTOP: ${{ secrets.SENTRY_DSN_DESKTOP }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          if [ -z "$TG_API_ID" ]; then
-            echo "::error::TG_API_ID is not set, so the released app would not be able to sign in"
-            exit 1
-          fi
-          if [ -z "$SENTRY_DSN_DESKTOP" ] && [ -z "$SENTRY_DSN" ]; then
-            echo "::notice::Neither SENTRY_DSN_DESKTOP nor SENTRY_DSN is set. This desktop build ships without crash reporting."
-          elif [ -z "$SENTRY_DSN_DESKTOP" ]; then
-            echo "::notice::SENTRY_DSN_DESKTOP is not set. This desktop build sends its crash reports to the Android project (SENTRY_DSN)."
-          fi
-          cat > local.properties <<EOF
-          TG_API_ID=$TG_API_ID
-          TG_API_HASH=$TG_API_HASH
-          OPENSUBTITLES_API_KEY=$OPENSUBTITLES_API_KEY
-          MSONE_GATEWAY_KEY=$MSONE_GATEWAY_KEY
-          TMDB_API_KEY=$TMDB_API_KEY
-          OMDB_API_KEY=$OMDB_API_KEY
-          SENTRY_DSN_DESKTOP=$SENTRY_DSN_DESKTOP
-          SENTRY_DSN=$SENTRY_DSN
-          EOF
-
-      - name: Package and self-test
-        uses: ./.github/actions/desktop-macos
-        with:
-          version: ${{ needs.version.outputs.name }}
-
-      - name: Shred credentials
-        if: always()
-        run: rm -f local.properties
-
-      - name: Hand the DMG to the publish job
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-macos
-          path: dist/*
-          retention-days: 3
-          if-no-files-found: error
-
   # The LG (webOS) and Samsung (Tizen) wrappers: a page that opens web.tmplayer.org, which answers a
   # TV's browser with the web player's TV build (webapp/functions/_middleware.ts). Nothing in them
   # is secret, so they are built without the release environment. webOS and Tizen take three
@@ -503,7 +360,7 @@ jobs:
 
   publish:
     name: Publish the release
-    needs: [version, android, desktop-linux, desktop-windows, desktop-macos, tv]
+    needs: [version, android, desktop-windows, tv]
     runs-on: ubuntu-latest
     # id-token and attestations are for the provenance step below; naming any permission here
     # replaces the workflow's list for this job, so contents: write is restated.
@@ -530,10 +387,6 @@ jobs:
           for f in \
             "TMPlayer-$VERSION-universal.apk" \
             "TMPlayer-$VERSION-windows-x64.msi" \
-            "TMPlayer-$VERSION-macos-arm64.dmg" \
-            "TMPlayer-$VERSION-x86_64.AppImage" \
-            "TMPlayer-$VERSION-x86_64.AppImage.zsync" \
-            "TMPlayer-$VERSION-linux-x64.tar.xz" \
             "TMPlayer-$VERSION-lg-webos.ipk" \
             "TMPlayer-$VERSION-samsung-tizen.wgt"; do
             if [ ! -s "dist/$f" ]; then
@@ -545,9 +398,6 @@ jobs:
           for path in dist/*; do
             case "${path#dist/}" in
               "TMPlayer-$VERSION-universal.apk" | "TMPlayer-$VERSION-windows-x64.msi" | \
-                "TMPlayer-$VERSION-macos-arm64.dmg" | \
-                "TMPlayer-$VERSION-x86_64.AppImage" | "TMPlayer-$VERSION-x86_64.AppImage.zsync" | \
-                "TMPlayer-$VERSION-linux-x64.tar.xz" | \
                 "TMPlayer-$VERSION-lg-webos.ipk" | "TMPlayer-$VERSION-samsung-tizen.wgt") ;;
               *) echo "::error::$path is not one of the release's files"; exit 1 ;;
             esac
@@ -617,17 +467,7 @@ jobs:
             echo "::warning::Attach mediamp-corresponding-source-$COVERED.tar.gz (scripts/build-mediamp-source.sh) to this release, then set TAG to $GITHUB_REF_NAME in release.yml."
           fi
           echo "url=$URL" >> "$GITHUB_OUTPUT"
-          # The macOS runtime's libraries are Homebrew's, not MSYS2's or Ubuntu's, so their source
-          # is a second archive (scripts/build-mediamp-source.sh --macos), attached by hand next to
-          # the first. MAC_TAG works as TAG does: empty links this release's own copy.
-          MAC_TAG="v1.27.0"
-          MAC_URL="https://github.com/${{ github.repository }}/releases/download/${MAC_TAG:-$GITHUB_REF_NAME}/mediamp-corresponding-source-$COVERED-macos.tar.gz"
-          if [ -n "$MAC_TAG" ]; then
-            curl --fail --silent --show-error --head --location --max-time 60 "$MAC_URL" > /dev/null
-          else
-            echo "::warning::Attach mediamp-corresponding-source-$COVERED-macos.tar.gz (scripts/build-mediamp-source.sh --macos) to this release, then set MAC_TAG to $GITHUB_REF_NAME in release.yml."
-          fi
-          echo "url_mac=$MAC_URL" >> "$GITHUB_OUTPUT"
+
 
       # The update feed every installed copy reads (C1 of the storage and updates plan). Written
       # here, from the files about to go up, so each package's size and SHA-256 are the published
@@ -690,13 +530,10 @@ jobs:
             | --- | --- |
             | Android TV, sticks and phones | `TMPlayer-${{ needs.version.outputs.name }}-universal.apk` |
             | Windows 10 and 11, 64-bit | `TMPlayer-${{ needs.version.outputs.name }}-windows-x64.msi` |
-            | macOS 26 or newer, Apple Silicon (preview, [first launch](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/INSTALL.md#macos)) | `TMPlayer-${{ needs.version.outputs.name }}-macos-arm64.dmg` |
-            | Linux, glibc 2.38 or newer | `TMPlayer-${{ needs.version.outputs.name }}-x86_64.AppImage` |
-            | Arch Linux | [the PKGBUILD](https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}/desktop/packaging/aur), from `TMPlayer-${{ needs.version.outputs.name }}-linux-x64.tar.xz` |
             | LG TVs, webOS 5 and newer ([Developer Mode](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/webapp/tv/README.md#2-lg-webos)) | `TMPlayer-${{ needs.version.outputs.name }}-lg-webos.ipk` |
             | Samsung TVs, Tizen 2020 and newer ([Developer Mode](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/webapp/tv/README.md#3-samsung-tizen)) | `TMPlayer-${{ needs.version.outputs.name }}-samsung-tizen.wgt` |
 
-            Installed copies offer each update. [How to install](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/INSTALL.md) · [Moving from the deb, rpm, Flatpak or Windows zip](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/INSTALL.md#moving-from-a-format-that-is-no-longer-published) · [GPL-3.0](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/LICENSE) · [Third party notices](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/THIRD_PARTY_NOTICES.md) · [nextlib source](${{ steps.nextlib.outputs.url }}) · [mediamp source](${{ steps.mediamp.outputs.url }}) · [mediamp macOS source](${{ steps.mediamp.outputs.url_mac }})
+            Installed copies offer each update. [How to install](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/INSTALL.md) · [Moving from the deb, rpm, Flatpak or Windows zip](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/INSTALL.md#moving-from-a-format-that-is-no-longer-published) · [GPL-3.0](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/LICENSE) · [Third party notices](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/THIRD_PARTY_NOTICES.md) · [nextlib source](${{ steps.nextlib.outputs.url }}) · [mediamp source](${{ steps.mediamp.outputs.url }})
 
       # Every file the feed names must come out of the download mirror before the feed goes live
       # (scripts/check-mirror.py). 1.28.4's AppImage did not: the worker had cached an error from
