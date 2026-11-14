@@ -556,7 +556,7 @@ if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
         .configureEach {
             freeArgs.addAll(
                 "--resource-dir",
-                "C:\\Users\\PVSSIV~1\\DOCUME~1\\GitHub\\TMPlayer\\desktop\\PACKAG~1\\windows",
+                packagingDir.dir("windows").asFile.absolutePath,
             )
         }
 }

@@ -49,7 +49,7 @@ runs:
       run: |
         # TDLib imports MSVCP140, VCRUNTIME140 and VCRUNTIME140_1; the app loads the JVM's copies
         # (WindowsRuntime in SelfTest.kt), so they must be in the bundled runtime.
-        $bin = "desktop/build/compose/binaries/main-release/app/TMPlayer/runtime/bin"
+        $bin = "desktop/build/compose/binaries/main-release/app/Veylora/runtime/bin"
         foreach ($dll in 'msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
           if (-not (Test-Path (Join-Path $bin $dll))) { Write-Error "$dll is missing from $bin" }
         }
@@ -85,8 +85,10 @@ runs:
           Write-Error "Expected exactly version $want installed, found: $($versions -join ', ')"
         }
         $location = $installer.ProductInfo($products[0], 'InstallLocation')
-        $exe = Get-ChildItem -Path $env:LOCALAPPDATA, $env:ProgramFiles -Recurse -Filter TMPlayer.exe -Depth 3 -ErrorAction SilentlyContinue | Select-Object -First 1
-        Write-Host "InstallLocation: $location; launcher: $($exe.FullName)"
-        $lnk = Get-ChildItem -Path "$env:APPDATA\Microsoft\Windows\Start Menu", ([Environment]::GetFolderPath('Desktop')) -Recurse -Filter *.lnk -ErrorAction SilentlyContinue | Where-Object Name -like 'TMPlayer*'
+        if (-not $location) { throw 'The installed MSI has no InstallLocation' }
+        $exe = Join-Path $location 'Veylora.exe'
+        if (-not (Test-Path $exe)) { throw "No installed launcher at $exe" }
+        Write-Host "InstallLocation: $location; launcher: $exe"
+        $lnk = Get-ChildItem -Path "$env:APPDATA\Microsoft\Windows\Start Menu", ([Environment]::GetFolderPath('Desktop')) -Recurse -Filter *.lnk -ErrorAction SilentlyContinue | Where-Object Name -like 'Veylora*'
         Write-Host "Shortcuts: $($lnk.FullName -join ', ')"
-        & "$env:GITHUB_ACTION_PATH/selftest.ps1" -Exe $exe.FullName
+        & "$env:GITHUB_ACTION_PATH/selftest.ps1" -Exe $exe
