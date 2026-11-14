@@ -109,10 +109,15 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :app:assembleRelease -PtmRequireMedia3ext=true
-          APK="app/build/outputs/apk/release/app-universal-release.apk"
-          test -f "$APK" || { echo "::error::Universal release APK was not produced"; exit 1; }
+          echo "Release APK outputs:"
+          find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print
+          mapfile -t APKS < <(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print)
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one release APK, found ${#APKS[@]}"
+            exit 1
+          fi
           mkdir -p dist
-          cp "$APK" dist/Veylora-universal.apk
+          cp "${APKS[0]}" dist/Veylora-universal.apk
 
       - name: Verify package, signature and calculate SHA-256
         id: apk
