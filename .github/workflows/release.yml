@@ -200,9 +200,17 @@ jobs:
             -PtmVersionName=${{ needs.version.outputs.name }} \
             -PtmVersionCode=${{ needs.version.outputs.code }}
 
-      - name: Verify the APK signature
+      - name: Verify APK package and signature
         run: |
-          apksigner verify --verbose --print-certs app/build/outputs/apk/release/app-universal-release.apk
+          set -euo pipefail
+          APK="app/build/outputs/apk/release/app-universal-release.apk"
+          apksigner verify --verbose --print-certs "$APK"
+          PACKAGE="$(apkanalyzer manifest application-id "$APK")"
+          if [ "$PACKAGE" != "app.veylora.player" ]; then
+            echo "::error::Expected Veylora package app.veylora.player, got $PACKAGE"
+            exit 1
+          fi
+          echo "Verified package ID: $PACKAGE"
 
       - name: Name the APK after the version
         run: |
