@@ -1,0 +1,147 @@
+name: Veylora signed APK
+
+# Build the production Veylora APK on every trusted push and on demand.
+# Pull requests deliberately do not receive signing secrets.
+on:
+  push:
+    branches:
+      - main
+      - feature/torbox-integration-rebrand
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veylora-signed-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Build and sign Veylora APK
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Restore Veylora signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not configured in the release environment"
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          cat > keystore.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Write Veylora build credentials
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          OPENSUBTITLES_API_KEY: ${{ secrets.OPENSUBTITLES_API_KEY }}
+          MSONE_GATEWAY_KEY: ${{ secrets.MSONE_GATEWAY_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TG_API_ID" ] || [ -z "$TG_API_HASH" ]; then
+            echo "::error::TG_API_ID and TG_API_HASH must be configured"
+            exit 1
+          fi
+          cat > local.properties <<EOF
+          TG_API_ID=$TG_API_ID
+          TG_API_HASH=$TG_API_HASH
+          SENTRY_DSN=$SENTRY_DSN
+          OPENSUBTITLES_API_KEY=$OPENSUBTITLES_API_KEY
+          MSONE_GATEWAY_KEY=$MSONE_GATEWAY_KEY
+          TMDB_API_KEY=$TMDB_API_KEY
+          OMDB_API_KEY=$OMDB_API_KEY
+          EOF
+
+      - name: Build the pinned FFmpeg extension
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo apt-get install -y -q nasm meson ninja-build
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;25.2.9519653" "cmake;3.22.1" > /dev/null
+          JOBS=4 scripts/build-media3ext.sh
+
+      - name: Assemble signed universal release APK
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleRelease -PtmRequireMedia3ext=true
+          APK="app/build/outputs/apk/release/app-universal-release.apk"
+          test -f "$APK" || { echo "::error::Universal release APK was not produced"; exit 1; }
+          mkdir -p dist
+          cp "$APK" dist/Veylora-universal.apk
+
+      - name: Verify package, signature and calculate SHA-256
+        id: apk
+        run: |
+          set -euo pipefail
+          APK="dist/Veylora-universal.apk"
+          apksigner verify --verbose --print-certs "$APK"
+          PACKAGE="$(apkanalyzer manifest application-id "$APK")"
+          if [ "$PACKAGE" != "com.veylora" ]; then
+            echo "::error::Expected package com.veylora, got $PACKAGE"
+            exit 1
+          fi
+          SHA="$(sha256sum "$APK" | awk '{print toupper($1)}')"
+          SIZE="$(stat -c '%s' "$APK")"
+          VERSION="$(apkanalyzer manifest version-name "$APK")"
+          CODE="$(apkanalyzer manifest version-code "$APK")"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Veylora signed APK"
+            echo
+            echo "- Version: $VERSION (code $CODE)"
+            echo "- Package ID: $PACKAGE"
+            echo "- APK size: $SIZE bytes"
+            echo "- SHA-256: `$SHA`"
+            echo "- Source commit: `$GITHUB_SHA`"
+            echo "- Signature: verified"
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s  %s\n' "$SHA" "Veylora-universal.apk" > dist/SHA256SUMS.txt
+
+      - name: Remove signing material and credentials
+        if: always()
+        run: rm -f release.keystore keystore.properties local.properties
+
+      - name: Upload signed APK and checksum
+        uses: actions/upload-artifact@v7
+        with:
+          name: Veylora-signed-APK-${{ github.run_number }}
+          path: |
+            dist/Veylora-universal.apk
+            dist/SHA256SUMS.txt
+          retention-days: 30
+          if-no-files-found: error
