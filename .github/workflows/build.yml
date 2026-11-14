@@ -36,7 +36,7 @@ jobs:
 
       - name: Set up Android SDK
         run: |
-          set -euo pipefail
+          set -eu
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER" || { echo "::error::Android sdkmanager not found at $SDKMANAGER"; exit 1; }
           yes | "$SDKMANAGER" --licenses >/dev/null
@@ -100,7 +100,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update -q
           sudo apt-get install -y -q nasm meson ninja-build
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;25.2.9519653" "cmake;3.22.1" > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;25.2.9519653" "cmake;3.22.1"
           JOBS=4 scripts/build-media3ext.sh
 
       - name: Assemble signed universal release APK
