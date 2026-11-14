@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class ZipEntriesTest {
-    private fun archive(method: Int = ZipEntry.STORED): ByteArray {
+    private fun archive(method: Int = ZipEntry.STORED, names: List<String> = listOf("cover.jpg", "Subs.srt", "Film 🎬.mkv")): ByteArray {
         val out = ByteArrayOutputStream()
         ZipOutputStream(out).use { zip ->
             fun add(name: String, bytes: ByteArray) {
@@ -25,9 +25,7 @@ class ZipEntriesTest {
                 zip.write(bytes)
                 zip.closeEntry()
             }
-            add("cover.jpg", byteArrayOf(9, 9))
-            add("Subs.srt", byteArrayOf(8))
-            add("Film 🎬.mkv", byteArrayOf(1, 2, 3, 4, 5))
+            names.forEach { add(it, byteArrayOf(1, 2, 3, 4, 5)) }
         }
         return out.toByteArray()
     }
@@ -35,6 +33,40 @@ class ZipEntriesTest {
     private fun resolve(bytes: ByteArray): ZipVideoEntry = ZipEntries.video(bytes.size.toLong(), ZipRange { at, length ->
         bytes.copyOfRange(at.toInt(), at.toInt() + length)
     })
+
+    @Test fun `video first and multiple videos choose deterministic name at equal size`() {
+        assertEquals("first.mp4", resolve(archive(names = listOf("first.mp4", "notes.txt"))).name)
+        assertEquals("a.mp4", resolve(archive(names = listOf("z.mkv", "notes.txt", "a.mp4"))).name)
+    }
+
+    @Test fun `bad local offset and corrupt end record fail`() {
+        val bytes = archive(names = listOf("video.mp4"))
+        val central = bytes.indexOfSequence(byteArrayOf(0x50, 0x4b, 1, 2))
+        val offset = bytes.copyOf()
+        repeat(4) { offset[central + 42 + it] = 0x7f }
+        assertFailsWith<IOException> { resolve(offset) }
+        bytes[bytes.size - 22] = 0
+        assertFailsWith<IOException> { resolve(bytes) }
+    }
+
+    @Test fun `descriptor CRC corruption is rejected`() {
+        val bytes = archive(ZipEntry.DEFLATED, listOf("video.mp4"))
+        val descriptor = bytes.indexOfSequence(byteArrayOf(0x50, 0x4b, 7, 8))
+        bytes[descriptor + 4] = (bytes[descriptor + 4].toInt() xor 1).toByte()
+        assertFailsWith<IOException> { resolve(bytes) }
+    }
+
+    @Test fun `unsigned data descriptor accepts placeholder local sizes`() {
+        val original = archive(ZipEntry.DEFLATED, listOf("video.mp4"))
+        val descriptor = original.indexOfSequence(byteArrayOf(0x50, 0x4b, 7, 8))
+        val bytes = original.copyOfRange(0, descriptor) + original.copyOfRange(descriptor + 4, original.size)
+        val end = bytes.size - 22
+        var centralOffset = 0L
+        repeat(4) { centralOffset = centralOffset or ((original[original.size - 22 + 16 + it].toLong() and 255) shl (8 * it)) }
+        repeat(4) { bytes[end + 16 + it] = ((centralOffset - 4) ushr (8 * it)).toByte() }
+        assertEquals(8, resolve(bytes).method)
+        assertEquals(5L, resolve(bytes).size)
+    }
 
     @Test fun `stored entry points only at video bytes across virtual volume seam`() {
         val bytes = archive()

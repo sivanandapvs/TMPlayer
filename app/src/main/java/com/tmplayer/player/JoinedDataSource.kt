@@ -66,6 +66,7 @@ class JoinedDataSource(
     }
 
     override fun open(dataSpec: DataSpec): Long {
+        if (uri != null) close()
         uri = dataSpec.uri
         if (dataSpec.uri.scheme != JOINED_SCHEME) {
             joined = null
@@ -87,15 +88,14 @@ class JoinedDataSource(
         while (true) {
             if (bytesRemaining == 0L) return C.RESULT_END_OF_INPUT
             val source = current ?: openPieceAt(position) ?: return C.RESULT_END_OF_INPUT
-            val wanted = minOf(length.toLong(), bytesRemaining).toInt()
+            val video = joined!!
+            val pieceEnd = video.map.startOf(currentIndex) + video.map.sizes[currentIndex]
+            if (position == pieceEnd) { closePiece(); continue }
+            val wanted = minOf(length.toLong(), bytesRemaining, pieceEnd - position).toInt()
             val read = source.read(buffer, offset, wanted)
             if (read == C.RESULT_END_OF_INPUT) {
-                // The end of this piece: the next one carries on from its first byte.
                 closePiece()
-                val map = joined!!.map
-                val next = currentIndexAfter(position, map) ?: return C.RESULT_END_OF_INPUT
-                if (map.startOf(next) != position) throw IOException("Piece ${next + 1} does not start where the last ended")
-                continue
+                throw java.io.EOFException("Piece ended before its declared size at $position")
             }
             position += read
             bytesRemaining -= read
@@ -109,13 +109,13 @@ class JoinedDataSource(
         if (joined == null) direct.responseHeaders else emptyMap()
 
     override fun close() {
-        if (joined == null) {
-            direct.close()
-        } else {
-            closePiece()
+        try {
+            if (joined == null) direct.close() else closePiece()
+        } finally {
+            joined = null
+            uri = null
+            bytesRemaining = 0
         }
-        joined = null
-        uri = null
     }
 
     /** Opens the piece holding [at], from the byte in it, or returns null at the end of the video. */
@@ -128,14 +128,17 @@ class JoinedDataSource(
         }
         val source = pieces.createDataSource()
         listeners.forEach(source::addTransferListener)
-        val left = video.map.sizes[spot.index] - spot.offset
-        source.open(
+        val left = minOf(video.map.sizes[spot.index] - spot.offset, bytesRemaining)
+        try { source.open(
             DataSpec.Builder()
                 .setUri(video.uris[spot.index])
                 .setPosition(spot.offset)
                 .setLength(left)
                 .build(),
-        )
+        ) } catch (error: Exception) {
+            runCatching { source.close() }.exceptionOrNull()?.let(error::addSuppressed)
+            throw error
+        }
         current = source
         currentIndex = spot.index
         lastIndex = spot.index
@@ -148,8 +151,6 @@ class JoinedDataSource(
         currentIndex = -1
         source.close()
     }
-
-    private fun currentIndexAfter(at: Long, map: PieceMap): Int? = map.locate(at)?.index
 
     private fun parse(uri: Uri): Joined {
         val uris = uri.getQueryParameters("p").map(Uri::parse)

@@ -57,7 +57,7 @@ class ZipVideoDataSourceTest {
                 override fun close() { inner?.close(); inner = null }
             }
         }
-        val factory = JoinedDataSource.Factory(DataSource.Factory { ByteArrayDataSource(byteArrayOf()) }, pieceFactory)
+        val factory = JoinedDataSource.Factory(DataSource.Factory { ByteArrayDataSource(byteArrayOf(0)) }, pieceFactory)
         val source = ZipVideoDataSource(factory)
         val uri = zipVideoUri(joined, ZipVideoEntry("film.mkv", 0, 2, 5, 5))
         assertEquals(5L, source.open(DataSpec(uri)))
@@ -65,6 +65,8 @@ class ZipVideoDataSourceTest {
         assertEquals(2, source.read(bytes, 0, 2))
         assertEquals(3, source.read(bytes, 2, 8))
         assertArrayEquals(byteArrayOf(1, 2, 3, 4, 5), bytes.copyOf(5))
+        assertEquals(0, source.read(bytes, 0, 0))
+        assertEquals(C.RESULT_END_OF_INPUT, source.read(bytes, 0, bytes.size))
         source.close()
     }
 
@@ -83,5 +85,16 @@ class ZipVideoDataSourceTest {
         val uri = zipVideoUri(Uri.parse("memory://archive"), ZipVideoEntry("film.mkv", 0, 0, 5, 5))
         assertThrows(IOException::class.java) { source.open(DataSpec(uri)) }
         assertEquals(true, closed)
+    }
+
+    @Test fun `seek to entry end returns empty range without opening archive`() {
+        val source = ZipVideoDataSource(DataSource.Factory { throw AssertionError("Unexpected archive open") })
+        val uri = zipVideoUri(Uri.parse("memory://archive"), ZipVideoEntry("film.mkv", 0, 2, 5, 5))
+        assertEquals(0L, source.open(DataSpec.Builder().setUri(uri).setPosition(5).build()))
+        assertEquals(uri, source.uri)
+        assertEquals(0, source.read(ByteArray(1), 0, 0))
+        assertEquals(C.RESULT_END_OF_INPUT, source.read(ByteArray(1), 0, 1))
+        source.close()
+        assertEquals(null, source.uri)
     }
 }

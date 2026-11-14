@@ -76,7 +76,13 @@ class ZipVideoDataSource(private val archiveFactory: DataSource.Factory) : DataS
         return read
     }
 
-    override fun close() { source?.close(); source = null; uri = null; remaining = 0 }
+    override fun close() {
+        val opened = source
+        source = null
+        uri = null
+        remaining = 0
+        opened?.close()
+    }
 
     class Factory(private val archiveFactory: DataSource.Factory) : DataSource.Factory {
         override fun createDataSource(): DataSource = ZipVideoDataSource(archiveFactory)
